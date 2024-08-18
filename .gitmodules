@@ -1,0 +1,3 @@
+[submodule "report"]
+	path = report
+	url = https://github.com/H-unter/Latex-Report-Template
