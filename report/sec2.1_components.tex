@@ -12,11 +12,13 @@ i can use citations too \cite{normal_distribution_wiki_page}.
         
         % Inputs
         % \node [input] (input_name) {};
-        \node [input] (input) {};
+        \node [input] (sensor_1) {};
+        \node [input, yshift= 1cm] (sensor_2) {};
+        \node [input, yshift= -1cm] (sensor_3) {};
 
         % Blocks
         % \node [block, location, node distance=xcm, minimum width=xcm] (block_name) {label};
-        \node [block, right of=input, node distance=3cm, minimum width=2cm] (RP2040) {RP2040};
+        \node [block, right of=sensor_1, node distance=3cm, minimum width=2cm, minimum height=3cm] (RP2040) {RP2040};
 
         % Outputs
         % \node [output, location] (output_name) {};
@@ -24,8 +26,11 @@ i can use citations too \cite{normal_distribution_wiki_page}.
 
         % Arrows
         % \draw [->] (point_A) -- node {label} (point_B);
-        \draw [->] (input) -- node {input} (RP2040);
-        \draw [->] (RP2040) -- node {output} (output);
+        \draw [->] (sensor_1) -- ++ (2,0) node [near start, above] {load cell} (RP2040);
+        \draw [->] (sensor_2) -- ++ (2,0) node [near start, above] {sap flow sensor} (RP2040);
+        \draw [->] (sensor_3) -- ++ (2,0) node [near start, above] {leaf temp} (RP2040);
+
+        \draw [->] (RP2040) -- node [near end, above] {output} (output);
             
     \end{tikzpicture}
     \end{center}
