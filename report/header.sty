@@ -3,16 +3,21 @@
     \usepackage{multicol}
 
 % Graphics and Diagrams
-    \usepackage{xcolor}
-    \usepackage{graphicx} % Required for inserting images
-    \usepackage[american]{circuitikz}
-    \usepackage{tikz}
-    \usepackage{tikz-3dplot}
-    \usetikzlibrary{arrows.meta}
-    \usepackage{pgfplots}
-    \pgfplotsset{compat=newest}
-    \usepackage{listings}
-    \usepackage{tcolorbox}
+\usepackage{xcolor}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[american]{circuitikz}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\tikzstyle{block} = [draw, fill=white, rectangle, 
+    minimum height=3em, minimum width=6em]
+\tikzstyle{sum} = [draw, fill=white, circle, node distance=1cm]
+\tikzstyle{input} = [coordinate]
+\tikzstyle{output} = [coordinate]
+\tikzstyle{pinstyle} = [pin edge={to-,thin,black}]
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepackage{listings}
+\usepackage{tcolorbox}
 
 % CSV Table input
     \usepackage{csvsimple, booktabs}

@@ -1,0 +1,36 @@
+\subsection{Components}
+
+\note{Feel free to move and change the name of this subsection later}
+
+This is my cool document. I have a lot of cool things to say. I was here. \note{note to self: Improve this introduction}
+
+i can use citations too \cite{normal_distribution_wiki_page}.
+
+\begin{figure}
+    \begin{center}
+    \begin{tikzpicture}[auto, node distance=2cm,>=latex']
+
+        \node [input, name=input] {};
+        \node [sum, right of=input] (sum) {};
+        \node [block, right of=sum, minimum width=2cm] (controller) {$\frac{s+a}{s+b}$};
+        \node [block, right of=controller, node distance=3cm, minimum width=1cm] (k) {k};
+        \node [block, right of=k, node distance=3cm, minimum width=2cm] (Gm) {$G_{m}(s)$};
+        \node [block, right of=Gm, node distance=3cm, minimum width=1cm] (integrator) {$\frac{1}{s}$};
+
+        \draw [->] (controller) -- node {} (k);
+        \draw [->] (k) -- node {} (Gm);
+        \draw [->] (Gm) -- node {} (integrator);
+        \node [output, right of=integrator] (output) {};
+
+        \draw [draw,->] (input) -- node {$\theta_{i}(s)$} (sum);
+        \draw [->] (sum) -- node {} (controller);
+        \draw [->] (integrator) -- node [name=output] {$\theta(s)$} (output);
+        \draw [->] (output) -- ++ (0,-2) -| node [pos=0.90] {$-$} (sum);
+            
+    \end{tikzpicture}
+    \end{center}
+    \caption{Block of diagram of the system}
+    \label{block_diagram}
+\end{figure}
+
+As seen in \cref{block_diagram} there were lots of blocks
