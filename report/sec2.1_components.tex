@@ -9,23 +9,23 @@ i can use citations too \cite{normal_distribution_wiki_page}.
 \begin{figure}
     \begin{center}
     \begin{tikzpicture}[auto, node distance=2cm,>=latex']
+        
+        % Inputs
+        % \node [input] (input_name) {};
+        \node [input] (input) {};
 
-        \node [input, name=input] {};
-        \node [sum, right of=input] (sum) {};
-        \node [block, right of=sum, minimum width=2cm] (controller) {$\frac{s+a}{s+b}$};
-        \node [block, right of=controller, node distance=3cm, minimum width=1cm] (k) {k};
-        \node [block, right of=k, node distance=3cm, minimum width=2cm] (Gm) {$G_{m}(s)$};
-        \node [block, right of=Gm, node distance=3cm, minimum width=1cm] (integrator) {$\frac{1}{s}$};
+        % Blocks
+        % \node [block, location, node distance=xcm, minimum width=xcm] (block_name) {label};
+        \node [block, right of=input, node distance=3cm, minimum width=2cm] (RP2040) {RP2040};
 
-        \draw [->] (controller) -- node {} (k);
-        \draw [->] (k) -- node {} (Gm);
-        \draw [->] (Gm) -- node {} (integrator);
-        \node [output, right of=integrator] (output) {};
+        % Outputs
+        % \node [output, location] (output_name) {};
+        \node [output, right of=RP2040] (output) {};
 
-        \draw [draw,->] (input) -- node {$\theta_{i}(s)$} (sum);
-        \draw [->] (sum) -- node {} (controller);
-        \draw [->] (integrator) -- node [name=output] {$\theta(s)$} (output);
-        \draw [->] (output) -- ++ (0,-2) -| node [pos=0.90] {$-$} (sum);
+        % Arrows
+        % \draw [->] (point_A) -- node {label} (point_B);
+        \draw [->] (input) -- node {input} (RP2040);
+        \draw [->] (RP2040) -- node {output} (output);
             
     \end{tikzpicture}
     \end{center}
