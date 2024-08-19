@@ -11,8 +11,8 @@
 
 | Task | Who did it? | What were the outcomes? | Who did the peer review? | What did you learn? |
 |------|-------------|-------------------------|--------------------------|---------------------|
-|      |             |                         |                          |                     |
-|      |             |                         |                          |                     |
+| Create the Github repository @ [this link](https://github.com/H-unter/CC3501-Assignment-2)     |     Hunter        |        A place to go for all code and report work + template files as a jumping off point                 |      UHHHHH                    |          UHHH latex will be used for the report           |
+| Begin the report with diagrams     |        Quentin     |                         |                          |                     |
 |      |             |                         |                          |                     |
 
 ---
