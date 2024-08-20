@@ -1,7 +1,11 @@
 # CC3501 weekly report template
 
 **Group number:** 2  
+
+
 **Team members:** Hunter Kruger-Ilingworth, Quentin Boet, Thomas Mehes
+
+
 **Week number:** 5
 
 ---
