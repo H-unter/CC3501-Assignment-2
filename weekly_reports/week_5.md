@@ -16,8 +16,8 @@
 | Task | Who did it? | What were the outcomes? | Who did the peer review? | What did you learn? |
 |------|-------------|-------------------------|--------------------------|---------------------|
 | Create the Github repository @ [this link](https://github.com/H-unter/CC3501-Assignment-2)|Hunter|A place to go for all code and report work + template files as a jumping off point|Thomas| My first time using Latex for report writting. Familiarising myself with the space and seeing the benefits compared to word|
-| Begin the report with diagrams|Quentin|text goes here|Hunter|text goes here|
-|Research into interfacing with SDI12 sensors|Thomas|Found relavent datasheets for each sensor. Allowing for experimentation next week|Quentin|"SDI-12 is not practical for connecting simple, low cost sensors; it is designed to be used with microprocessor-controlled instruments" "The data line is a bi-directional, 3 state, data transfer line. The data line uses negative logic."|
+| Begin the report with diagrams|Quentin| Description defining the hardware structure was commenced (block diagram). Diagram for SDI-12 circuit was added. |Hunter|text goes here|
+|Research into interfacing with SDI12 sensors|Thomas|Found relavent datasheets for each sensor. Allowing for experimentation next week|Quentin|Checked the datasheet that was found. It was noted that SDI-12 "is designed to be used with microprocessor-controlled instruments" "The data line is a bi-directional, 3 state, data transfer line. The data line uses negative logic."|
 
 ---
 
