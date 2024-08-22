@@ -15,9 +15,9 @@
 
 | Task | Who did it? | What were the outcomes? | Who did the peer review? | What did you learn? |
 |------|-------------|-------------------------|--------------------------|---------------------|
-| Create the Github repository @ [this link](https://github.com/H-unter/CC3501-Assignment-2)|Hunter|A place to go for all code and report work + template files as a jumping off point|UHHHHH|UHHH latex will be used for the report|
-| Begin the report with diagrams|Quentin|text goes here|text goes here|text goes here|
-|Experimenting with SDI12 sensors|Thomas|text goes here|text goes here|text goes here|
+| Create the Github repository @ [this link](https://github.com/H-unter/CC3501-Assignment-2)|Hunter|A place to go for all code and report work + template files as a jumping off point|Thomas| My first time using Latex for report writting. Familiarising myself with the space and seeing the benefits compared to word|
+| Begin the report with diagrams|Quentin|text goes here|Hunter|text goes here|
+|Research into interfacing with SDI12 sensors|Thomas|Found relavent datasheets for each sensor. Allowing for experimentation next week|Quentin|"SDI-12 is not practical for connecting simple, low cost sensors; it is designed to be used with microprocessor-controlled instruments" "The data line is a bi-directional, 3 state, data transfer line. The data line uses negative logic."|
 
 ---
 
