@@ -6,34 +6,63 @@
 #include "WS2812.pio.h" // This header file gets produced during compilation from the WS2812.pio file
 #include "drivers/logging/logging.h"
 
-#define LED_PIN 14
+#include "hardware/uart.h"
+#include "hardware/irq.h"
+
+/// \tag::uart_advanced[]
+
+// sdi-12 uart
+#define UART_ID_SENSORS uart1
+#define BAUD_RATE_SENSORS 1200
+
+#define DATA_BITS 8
+#define STOP_BITS 1
+#define PARITY UART_PARITY_NONE
+
+// Check  The pinout of the Raspberry Pi Pico Rev3 board in datasheet
+#define UART_TX_PIN_SENSORS 4
+#define UART_RX_PIN_SENSORS 5
+
+#define ENABLE_PIN 3
 
 int main()
 {
-    stdio_init_all();
+  stdio_init_all();
 
-    // Initialise PIO0 to control the LED chain
-    uint pio_program_offset = pio_add_program(pio0, &ws2812_program);
-    ws2812_program_init(pio0, 0, pio_program_offset, LED_PIN, 800000, false);
-    uint32_t led_data [1];
+  // SENSORS ////////////////////////////////////////////////////////////////////////////
+  // Handle the various interesting values of ch here...
+  // Set up our UART with a basic baud rate.
+  uart_init(UART_ID_SENSORS, BAUD_RATE_SENSORS);
 
-    for (;;) {
-        // Test the log system
-        log(LogLevel::INFORMATION, "Hello world");
+  // Set the TX and RX pins by using the function select on the GPIO
+  // Set datasheet for more information on function select
+  gpio_set_function(UART_TX_PIN_SENSORS, GPIO_FUNC_UART);
+  gpio_set_function(UART_RX_PIN_SENSORS, GPIO_FUNC_UART);
 
-        // Turn on the first LED to be a certain colour
-        uint8_t red = 0;
-        uint8_t green = 0;
-        uint8_t blue = 255;
-        led_data[0] = (red << 24) | (green << 16) | (blue << 8);
-        pio_sm_put_blocking(pio0, 0, led_data[0]);
-        sleep_ms(500);
+  // Initialise the GPIOs
+  gpio_init(ENABLE_PIN);
 
-        // Set the first LED off 
-        led_data[0] = 0;
-        pio_sm_put_blocking(pio0, 0, led_data[0]);
-        sleep_ms(500);
-    }
+  // Determine the direction (input or output)
+  gpio_set_dir(ENABLE_PIN, true);
 
-    return 0;
+  while (true)
+  {
+    // set to high to enable transmitting
+    gpio_put(ENABLE_PIN, true);
+
+    uart_set_break(uart1, true);
+    uart_set_break(uart1, false);
+
+    sleep_ms(10);
+    uart_putc(UART_ID_SENSORS, '?');
+    uart_putc(UART_ID_SENSORS, '!');
+    
+    sleep_ms(30);
+    // set to low to enable receiving
+    gpio_put(ENABLE_PIN, false);
+    sleep_ms(400); // allow time to receive response from sensor
+    
+    
 }
+}
+    
