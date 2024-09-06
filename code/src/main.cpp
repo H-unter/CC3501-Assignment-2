@@ -51,7 +51,7 @@ int main()
 
   // Determine the direction (input or output)
   gpio_set_dir(ENABLE_PIN, true);
-  printf("cycle 1\n");
+  printf("test 1\n");
   while (true)
   {
     // set to high to enable transmitting
@@ -68,22 +68,23 @@ int main()
     // set to low to enable receiving
     gpio_put(ENABLE_PIN, false);
 
-    // while (receiving_time < 20) // for 20ms receive sesnor response (needs to be within 15ms according to protocol)
-    // {
-    //   start_time = get_absolute_time(); // get start time
-    //   uint8_t ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-    //   buffer[index] = ch;              // save character
-    //   index++;                         // increment the index
-    //   uart_putc(UART_ID_SENSORS, ch);  // print character
+    start_time = get_absolute_time(); // get start time
+    while (receiving_time < 15) // for 20ms receive sesnor response (needs to be within 15ms according to protocol)
+    {
+      uint8_t ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
 
-    //   finish_time = get_absolute_time(); // get finish time
-    //   receiving_time = us_to_ms(absolute_time_diff_us(start_time, finish_time)); // time to receive in ms
-    // }
+      finish_time = get_absolute_time(); // get finish time
+      receiving_time = us_to_ms(absolute_time_diff_us(start_time, finish_time)); // time to receive in ms
+    }
 
-      buffer[index] = 0;                 // add trailing null
-      printf("%s\n", buffer);            // print buffer (message from sensor)
-      buffer[0] = '\0';                  // clear buffer
-    
+    receiving_time = 0;
+    buffer[index] = 0;                 // add trailing null
+    printf("%s\n", buffer);            // print buffer (message from sensor)
+    buffer[0] = '\0';                  // clear buffer
+    printf("test 2\n");
+    index = 0;
 
   sleep_ms(400); // allow time to receive response from sensor
 
