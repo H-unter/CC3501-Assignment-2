@@ -1,29 +1,29 @@
-\begin{tikzpicture}[auto, node distance=2cm,>=latex']
+\documentclass{standalone}
+\usepackage{circuitikz}
 
-    % Inputs
-    % \node [input] (input_name) {};
-    \node [input] (SDI12_sensor_1) {};
-    \node [input, yshift= 1cm] (SDI12_sensor_2) {};
-    \node [input, yshift= -1cm, xshift= -1cm] (analogue_input) {};
+\begin{document}
 
-    % Blocks
-    % \node [block, location, node distance=xcm, minimum width=xcm] (block_name) {label};
-    \node [block, right of=SDI12_sensor_1, node distance=3cm, minimum width=2cm, minimum height=3cm] (RP2040) {RP2040};
-    \node [block, left of=RP2040, yshift= -1cm, node distance=2cm, minimum width=1cm, minimum height=1cm] (ADC) {ADC};
-    \node [block, right of=RP2040, node distance=2cm, minimum width=1cm, minimum height=1cm] (DAC) {DAC};
+\begin{circuitikz}
+    \tikzstyle{every node}=[font=\small, align=center]
+    \draw [ line width=1pt ] (0,0) rectangle (5,5);
+    \draw [ line width=1pt ] (-2,0.5) rectangle  node {\small RS485 \\ Tranciever} (-1,2.5);
+    \draw [ line width=1pt ] (1,0.5) rectangle  node {\LARGE UART0} (3.25,2.5);
+    \draw[ line width=1pt] (-2,2) to[short] (-11.5,2);
+    \draw[ line width=1pt] (-2,1) to[short] (-11.5,1);
+    \node at (-4,1) [circ] {};
+    \node at (-7,1) [circ] {};
+    \draw [ line width=1pt](-11.5,2) to[short, -o] (-12.25,2) ;
+    \draw [ line width=1pt](-11.5,1) to[short, -o] (-12.25,1) ;
+    \node [font=\LARGE] at (-12.75,2) {A};
+    \node [font=\LARGE] at (-12.75,1) {B};
+    \draw [ line width=1pt ] (-8,-1.75) rectangle  node {\Large SDI-12 Sensor 2} (-6,0.25);
+    \draw [ line width=1pt ] (-5,-1.75) rectangle  node {\Large SDI-12 Sensor N} (-3,0.25);
+    \draw [ line width=1pt](-7,1) to[short] (-7,0.25);
+    \draw [ line width=1pt](-4,1) to[short] (-4,0.25);
+    \node [font=\Large] at (-8.75,-0.75) {$\cdots$};
+    \node at (-10.75,1) [circ] {};
+    \draw [ line width=1pt ] (-11.75,-1.75) rectangle  node {\Large SDI-12 Sensor 2} (-9.75,0.25);
+    \draw [ line width=1pt](-10.75,1) to[short] (-10.75,0.25);
+\end{circuitikz}
 
-    % Outputs
-    % \node [output, location] (output_name) {};
-    \node [output, right of=DAC] (dew_point_generator) {};
-
-    % Arrows
-    % \draw [->] (point_A) -- node {label} (point_B);
-    \draw [->] (SDI12_sensor_1) -- ++ (2,0) node [near start, above] {SDI-12 sensor 1} (RP2040);
-    \draw [->] (SDI12_sensor_2) -- ++ (2,0) node [near start, above] {SDI-12 sensor 2} (RP2040);
-    \draw [->] (ADC) -- ++ (1,0) node [near start, above] {} (RP2040);
-
-    \draw [->] (RP2040) -- (DAC);
-    \draw [->] (DAC) -- node [near end, above] {Dew Point Generator} (dew_point_generator);
-    \draw [->] (analogue_input) -- node [near start, above] {Analogue input} (ADC);
-
-\end{tikzpicture}
+\end{document}
