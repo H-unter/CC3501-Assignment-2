@@ -23,10 +23,17 @@
 #define UART_TX_PIN_SENSORS 4
 #define UART_RX_PIN_SENSORS 5
 
-#define ENABLE_PIN 3
+#define ENABLE_DRIVE_PIN 3
 
 volatile unsigned int index = 0;
 volatile char buffer[100];
+
+// Function to print binary representation of a byte
+void print_binary(uint8_t value) {
+    for (int i = 7; i >= 0; i--) {
+        putchar((value & (1 << i)) ? '1' : '0');
+    }
+}
 
 int main()
 {
@@ -47,34 +54,36 @@ int main()
   gpio_set_function(UART_RX_PIN_SENSORS, GPIO_FUNC_UART);
 
   // Initialise the GPIOs
-  gpio_init(ENABLE_PIN);
+  gpio_init(ENABLE_DRIVE_PIN);
 
   // Determine the direction (input or output)
-  gpio_set_dir(ENABLE_PIN, true);
+  gpio_set_dir(ENABLE_DRIVE_PIN, true);
   printf("test 1\n");
   while (true)
   {
     // set to high to enable transmitting
-    gpio_put(ENABLE_PIN, true);
+    gpio_put(ENABLE_DRIVE_PIN, true);
 
     uart_set_break(uart1, true);
     uart_set_break(uart1, false);
 
-    sleep_ms(10);
+    sleep_ms(10); // marking > 8.33ms
     uart_putc(UART_ID_SENSORS, '?');
     uart_putc(UART_ID_SENSORS, '!');
-    
-    sleep_ms(30);
+
+    sleep_ms(15);
     // set to low to enable receiving
-    gpio_put(ENABLE_PIN, false);
+    gpio_put(ENABLE_DRIVE_PIN, false);
 
     start_time = get_absolute_time(); // get start time
-    while (receiving_time < 15) // for 20ms receive sesnor response (needs to be within 15ms according to protocol)
+    while (receiving_time < 10) // for 20ms receive sesnor response (needs to be within 15ms according to protocol)
     {
       uint8_t ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
       buffer[index] = ch;              // save character
       index++;                         // increment the index
-
+      printf("%c:\n", ch);
+      print_binary(ch);
+      printf("\n");
       finish_time = get_absolute_time(); // get finish time
       receiving_time = us_to_ms(absolute_time_diff_us(start_time, finish_time)); // time to receive in ms
     }
