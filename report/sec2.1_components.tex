@@ -12,10 +12,12 @@ As seen in \cref{block_diagram} there were lots of blocks
 SDI-12
 
 \begin{figure}
-    \includegraphics[width=\linewidth]{figures/SDI-12 circuit.png}
-    \caption{SDI-12 Circuit Diagram from \cite{sdi12_datasheet}}
-    \label{sdi12_circuit}
+    \includegraphics[width=\linewidth]{figures/SDI-12_timing.png}
+    \caption{SDI-12 timing from \cite{sdi12_datasheet}}
+    \label{sdi12_timing}
 \end{figure}
+
+we used the \code{uart_break()} function to send the break signal, and then used the \code{uart_read_stuff()} function to read the response from the sensor. The response was then parsed to get the data. The timing of the SDI-12 protocol is shown in \cref{sdi12_timing}.
 
 Load Cell (MT603)
 analogue signal, therefore requires ADC?
