@@ -18,9 +18,10 @@
 
 // sdi-12 parameter definitions
 #define SDI12_BAUD_RATE 1200
-// sensor response times (pg.41 of datasheet)
-#define SDI12_MINIMUM_RESPONSE_TIME_MS 380            // min sensor response time for most commands
-#define SDI12_MAXUMUM_RESPONSE_TIME_CONCURRENT_MS 810 // max sensor response time for concurrent measurement
+// sensor response/transmit times (pg.41 of datasheet)
+#define SDI12_MAX_RESPONSE_TIME_MS 15
+#define SDI12_MAX_TRANSMIT_TIME_MS 380            // min sensor response time for most commands
+#define SDI12_MAX_TRANSMIT_TIME_CONCURRENT_MS 810 // max sensor response time for concurrent measurement
 
 /*!
  * \brief sends a break in order to begin UART communication
@@ -49,6 +50,21 @@ void uart_send_command(uart_inst_t *uart, const std::string &command)
     uart_tx_wait_blocking(uart); // Wait until the transmission is complete
 }
 
+/*!
+ * \brief Checks if the current time has exceeded the global timeout value.
+ *
+ * \param start_time The time when the operation started (in absolute time format).
+ * \return true if the timeout has been exceeded, false otherwise.
+ */
+bool is_timed_out(absolute_time_t start_time)
+{
+    // Calculate the time difference in microseconds
+    int64_t time_diff_us = absolute_time_diff_us(start_time, get_absolute_time());
+
+    // Convert the time difference to milliseconds and compare with the global timeout
+    return (time_diff_us / 1000) > SDI12_MAX_RESPONSE_TIME_MS;
+}
+
 int main()
 {
     stdio_init_all();
@@ -71,26 +87,32 @@ int main()
         uart_send_break(UART_INSTANCE); // Send the UART break signal to initiate communication
         uart_send_command(UART_INSTANCE, "0I!");
         gpio_put(ENABLE_DRIVE_PIN, false); // Set GPIO pin low to enable receiving mode
-        sleep_ms(1000);                    // sleep until the response is recieved, not timing critical as the uart stuff comes through a FIFO buffer
+
+        absolute_time_t start_time = get_absolute_time();
+        while (!uart_is_readable(UART_INSTANCE) && !is_timed_out(start_time))
+        { // wait for the start of the repsonse
+            tight_loop_contents();
+        }
+
+        // if we make it here, that means we have received the first character of the response
 
         int buffer_size = 128; // Internal buffer size for storing received characters
         uint8_t ch;
-        char internal_buffer[buffer_size] = {0};
+        char message_buffer[buffer_size] = {0};
         // Poll until there is no more data in the UART FIFO or the buffer is full
-        int index = 0; // Reset index for new data reception
-        while (uart_is_readable(UART_INSTANCE) && index < buffer_size - 1)
+        int buffer_index = 0; // Reset index for new data reception
+        while (uart_is_readable(UART_INSTANCE) && buffer_index < buffer_size - 1)
         {
-            ch = uart_getc(UART_INSTANCE); // Read one character from the UART receive buffer
-            internal_buffer[index++] = ch; // Store the character in the internal buffer
-            printf("%c\n", ch);            // print the character
-            sleep_ms(10);
+            ch = uart_getc(UART_INSTANCE);       // Read one character from the UART receive buffer
+            message_buffer[buffer_index++] = ch; // Store the character in the internal buffer
+            sleep_ms(10);                        // enough of a delay to allow the next character to come through
         }
 
         // Null-terminate the string to make it easier to process
-        internal_buffer[index] = '\0';
+        message_buffer[buffer_index] = '\0';
 
         // Print the full content of the buffer
-        printf("Received %d characters: %s\n", index, internal_buffer);
+        printf("Received %d characters: %s\n", buffer_index, message_buffer);
 
         // Wait before sending the next command
         sleep_ms(1000);
