@@ -10,113 +10,89 @@
 #include "hardware/irq.h"
 #include <string>
 
-/// \tag::uart_advanced[]
-
-// sdi-12 uart
-#define UART_ID_SENSORS uart1
-#define BAUD_RATE_SENSORS 1200
-
-#define DATA_BITS 8
-#define STOP_BITS 1
-#define PARITY UART_PARITY_NONE
-
-// Check  The pinout of the Raspberry Pi Pico Rev3 board in datasheet
-#define UART_TX_PIN_SENSORS 4
-#define UART_RX_PIN_SENSORS 5
-
+// hardware related definitions
+#define UART_INSTANCE uart1
+#define SDI12_UART_TX_PIN 4
+#define SDI12_UART_RX_PIN 5
 #define ENABLE_DRIVE_PIN 3
 
+// sdi-12 parameter definitions
+#define SDI12_BAUD_RATE 1200
+// sensor response times (pg.41 of datasheet)
+#define SDI12_MINIMUM_RESPONSE_TIME_MS 380            // min sensor response time for most commands
+#define SDI12_MAXUMUM_RESPONSE_TIME_CONCURRENT_MS 810 // max sensor response time for concurrent measurement
 
 /*!
-* \brief sends a break in order to begin UART communication
-*/
-void uart_send_break(uart_inst_t *uart) {
-    uart_set_break(uart, true); // Set the UART break signal
-    uart_set_break(uart, false);// Clear the break signal
-    sleep_ms(10);
+ * \brief sends a break in order to begin UART communication
+ */
+void uart_send_break(uart_inst_t *uart)
+{
+    uart_set_break(uart, true);  // Set the UART break signal
+    sleep_ms(1);                 // hold the break for an extra ms (uart break in this case happens to be about the same time as the sdi-12 break)
+    uart_set_break(uart, false); // Clear the break signal
+    sleep_ms(10);                // Wait at least 8.33 ms to begin communication
 }
 
 /*!
- * \brief Sends a command over UART for SDI-12 communication
+ * \brief Sends a command over UART for SDI-12 communication.
  *
  * This function sends a specified SDI-12 command string to the sensor.
- * It first sends a break signal to wake up the sensors, sends the command,
- * and then switches the GPIO pin to receive the response.
+ * It will wait until the command is fully transmitted before returning.
  *
  * \param uart The UART instance (e.g., uart1) used for communication.
- * \param command The SDI-12 command string to send (e.g., "0M!").
+ * \param command The SDI-12 command as a C++ string to send.
  */
-void uart_send_command(uart_inst_t *uart, char *command) {
-    
-    
-    // Send the SDI-12 command string (e.g., "0M!")
-    while (*command) {
-        uart_putc(uart, *command++);  // Send each character one by one
-    }
-
-    
-    // Delay to allow time for the sensor to process the command
-    sleep_ms(15);
-
-
-
-    // Wait for the response from the sensor
+void uart_send_command(uart_inst_t *uart, const std::string &command)
+{
+    // Convert the C++ string to a C-style string for UART transmission
+    uart_write_blocking(uart, (const uint8_t *)command.c_str(), command.length());
+    uart_tx_wait_blocking(uart); // Wait until the transmission is complete
 }
-
-
-
 
 int main()
 {
-  stdio_init_all();
+    stdio_init_all();
+    uart_init(UART_INSTANCE, SDI12_BAUD_RATE);
+    gpio_set_function(SDI12_UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(SDI12_UART_RX_PIN, GPIO_FUNC_UART);
+    uart_set_hw_flow(UART_INSTANCE, false, false);          // SDI-12 devices don’t support hardware flow control like CTS/RTS, so it isn't needed.
+    uart_set_format(UART_INSTANCE, 7, 1, UART_PARITY_EVEN); // SDI-12 format: 7 data bits, even parity, 1 stop bit pg 13 of SDI-12 datasheet
 
-  // SENSORS ////////////////////////////////////////////////////////////////////////////
-  // Handle the various interesting values of ch here...
-  // Set up our UART with a basic baud rate.
-  uart_init(UART_ID_SENSORS, BAUD_RATE_SENSORS);
+    // Initialise the GPIOs
+    gpio_init(ENABLE_DRIVE_PIN);
 
-  // Set the TX and RX pins by using the function select on the GPIO
-  // Set datasheet for more information on function select
-  gpio_set_function(UART_TX_PIN_SENSORS, GPIO_FUNC_UART);
-  gpio_set_function(UART_RX_PIN_SENSORS, GPIO_FUNC_UART);
+    // Determine the direction (input or output)
+    gpio_set_dir(ENABLE_DRIVE_PIN, true);
+    printf("test 1\n");
+    while (true)
+    {
+        // Set GPIO pin high to enable transmitting
+        gpio_put(ENABLE_DRIVE_PIN, true);
+        uart_send_break(UART_INSTANCE); // Send the UART break signal to initiate communication
+        uart_send_command(UART_INSTANCE, "0I!");
+        gpio_put(ENABLE_DRIVE_PIN, false); // Set GPIO pin low to enable receiving mode
+        sleep_ms(1000);                    // sleep until the response is recieved, not timing critical as the uart stuff comes through a FIFO buffer
 
-  // Initialise the GPIOs
-  gpio_init(ENABLE_DRIVE_PIN);
+        int buffer_size = 128; // Internal buffer size for storing received characters
+        uint8_t ch;
+        char internal_buffer[buffer_size] = {0};
+        // Poll until there is no more data in the UART FIFO or the buffer is full
+        int index = 0; // Reset index for new data reception
+        while (uart_is_readable(UART_INSTANCE) && index < buffer_size - 1)
+        {
+            ch = uart_getc(UART_INSTANCE); // Read one character from the UART receive buffer
+            internal_buffer[index++] = ch; // Store the character in the internal buffer
+            printf("%c\n", ch);            // print the character
+            sleep_ms(10);
+        }
 
-  // Determine the direction (input or output)
-  gpio_set_dir(ENABLE_DRIVE_PIN, true);
-  printf("test 1\n");
-  while (true)
-  {
-    // Set GPIO pin high to enable transmitting
-    gpio_put(ENABLE_DRIVE_PIN, true);
-    uart_send_break(UART_ID_SENSORS); // Send the UART break signal to initiate communication
-    uart_send_command(UART_ID_SENSORS, "0M!");
-    uart_send_command(UART_ID_SENSORS, "0D0!");
-    gpio_put(ENABLE_DRIVE_PIN, false); // Set GPIO pin low to enable receiving mode
-    sleep_ms(50); // sleep until the response is recieved, not timing critical as the uart stuff comes through a FIFO buffer
+        // Null-terminate the string to make it easier to process
+        internal_buffer[index] = '\0';
 
-    int buffer_size = 128;  // Internal buffer size for storing received characters
-    uint8_t ch;
-    char internal_buffer[buffer_size];
-    // Poll until there is no more data in the UART FIFO or the buffer is full
-    int index = 0;  // Reset index for new data reception
-    while (uart_is_readable(UART_ID_SENSORS) && index < buffer_size - 1) {
-        ch = uart_getc(UART_ID_SENSORS);// Read one character from the UART receive buffer
-        internal_buffer[index++] = ch; // Store the character in the internal buffer
-        printf("%c\n", ch); // print the character
-        sleep_us(1);
+        // Print the full content of the buffer
+        printf("Received %d characters: %s\n", index, internal_buffer);
+
+        // Wait before sending the next command
+        sleep_ms(1000);
     }
-
-    // Null-terminate the string to make it easier to process
-    internal_buffer[index] = '\0';
-
-
-    // Print the full content of the buffer
-    printf("Received %d characters: %s\n", index, internal_buffer);
-      
-    // Wait before sending the next command
-    sleep_ms(400);
 }
-}
-    
