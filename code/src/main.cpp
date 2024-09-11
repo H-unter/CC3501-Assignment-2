@@ -68,27 +68,92 @@ int main()
     uart_set_break(uart1, false);
 
     sleep_ms(10); // marking > 8.33ms
-    uart_putc(UART_ID_SENSORS, '?');
+    uart_putc(UART_ID_SENSORS, '0');
+    uart_putc(UART_ID_SENSORS, 'M');
     uart_putc(UART_ID_SENSORS, '!');
+
+    sleep_ms(15);
+
+    uart_putc(UART_ID_SENSORS, '0');
+    uart_putc(UART_ID_SENSORS, 'D');
+    uart_putc(UART_ID_SENSORS, '0');
+    uart_putc(UART_ID_SENSORS, '!');
+
+
+    // uart_putc(UART_ID_SENSORS, '?');
+    // uart_putc(UART_ID_SENSORS, '!');
 
     sleep_ms(15);
     // set to low to enable receiving
     gpio_put(ENABLE_DRIVE_PIN, false);
 
-    start_time = get_absolute_time(); // get start time
-    while (receiving_time < 10) // for 20ms receive sesnor response (needs to be within 15ms according to protocol)
-    {
+    sleep_ms(50);
+
+
       uint8_t ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
       buffer[index] = ch;              // save character
       index++;                         // increment the index
       printf("%c:\n", ch);
-      print_binary(ch);
-      printf("\n");
-      finish_time = get_absolute_time(); // get finish time
-      receiving_time = us_to_ms(absolute_time_diff_us(start_time, finish_time)); // time to receive in ms
-    }
 
-    receiving_time = 0;
+       ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+      ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
+      buffer[index] = ch;              // save character
+      index++;                         // increment the index
+      printf("%c:\n", ch);
+
+
+
     buffer[index] = 0;                 // add trailing null
     printf("%s\n", buffer);            // print buffer (message from sensor)
     buffer[0] = '\0';                  // clear buffer
