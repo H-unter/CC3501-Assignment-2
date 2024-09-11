@@ -8,6 +8,7 @@
 
 #include "hardware/uart.h"
 #include "hardware/irq.h"
+#include <string>
 
 /// \tag::uart_advanced[]
 
@@ -25,23 +26,49 @@
 
 #define ENABLE_DRIVE_PIN 3
 
-volatile unsigned int index = 0;
-volatile char buffer[100];
 
-// Function to print binary representation of a byte
-void print_binary(uint8_t value) {
-    for (int i = 7; i >= 0; i--) {
-        putchar((value & (1 << i)) ? '1' : '0');
-    }
+/*!
+* \brief sends a break in order to begin UART communication
+*/
+void uart_send_break(uart_inst_t *uart) {
+    uart_set_break(uart, true); // Set the UART break signal
+    uart_set_break(uart, false);// Clear the break signal
+    sleep_ms(10);
 }
+
+/*!
+ * \brief Sends a command over UART for SDI-12 communication
+ *
+ * This function sends a specified SDI-12 command string to the sensor.
+ * It first sends a break signal to wake up the sensors, sends the command,
+ * and then switches the GPIO pin to receive the response.
+ *
+ * \param uart The UART instance (e.g., uart1) used for communication.
+ * \param command The SDI-12 command string to send (e.g., "0M!").
+ */
+void uart_send_command(uart_inst_t *uart, char *command) {
+    
+    
+    // Send the SDI-12 command string (e.g., "0M!")
+    while (*command) {
+        uart_putc(uart, *command++);  // Send each character one by one
+    }
+
+    
+    // Delay to allow time for the sensor to process the command
+    sleep_ms(15);
+
+
+
+    // Wait for the response from the sensor
+}
+
+
+
 
 int main()
 {
   stdio_init_all();
-
-  absolute_time_t start_time = get_absolute_time();  // can't equal to zero, so make it equal to real time
-  absolute_time_t finish_time = get_absolute_time();  // can't equal to zero, so make it equal to real time
-  int64_t receiving_time = 0;
 
   // SENSORS ////////////////////////////////////////////////////////////////////////////
   // Handle the various interesting values of ch here...
@@ -61,107 +88,35 @@ int main()
   printf("test 1\n");
   while (true)
   {
-    // set to high to enable transmitting
+    // Set GPIO pin high to enable transmitting
     gpio_put(ENABLE_DRIVE_PIN, true);
+    uart_send_break(UART_ID_SENSORS); // Send the UART break signal to initiate communication
+    uart_send_command(UART_ID_SENSORS, "0M!");
+    uart_send_command(UART_ID_SENSORS, "0D0!");
+    gpio_put(ENABLE_DRIVE_PIN, false); // Set GPIO pin low to enable receiving mode
+    sleep_ms(50); // sleep until the response is recieved, not timing critical as the uart stuff comes through a FIFO buffer
 
-    uart_set_break(uart1, true);
-    uart_set_break(uart1, false);
+    int buffer_size = 128;  // Internal buffer size for storing received characters
+    uint8_t ch;
+    char internal_buffer[buffer_size];
+    // Poll until there is no more data in the UART FIFO or the buffer is full
+    int index = 0;  // Reset index for new data reception
+    while (uart_is_readable(UART_ID_SENSORS) && index < buffer_size - 1) {
+        ch = uart_getc(UART_ID_SENSORS);// Read one character from the UART receive buffer
+        internal_buffer[index++] = ch; // Store the character in the internal buffer
+        printf("%c\n", ch); // print the character
+        sleep_us(1);
+    }
 
-    sleep_ms(10); // marking > 8.33ms
-    uart_putc(UART_ID_SENSORS, '0');
-    uart_putc(UART_ID_SENSORS, 'M');
-    uart_putc(UART_ID_SENSORS, '!');
-
-    sleep_ms(15);
-
-    uart_putc(UART_ID_SENSORS, '0');
-    uart_putc(UART_ID_SENSORS, 'D');
-    uart_putc(UART_ID_SENSORS, '0');
-    uart_putc(UART_ID_SENSORS, '!');
-
-
-    // uart_putc(UART_ID_SENSORS, '?');
-    // uart_putc(UART_ID_SENSORS, '!');
-
-    sleep_ms(15);
-    // set to low to enable receiving
-    gpio_put(ENABLE_DRIVE_PIN, false);
-
-    sleep_ms(50);
+    // Null-terminate the string to make it easier to process
+    internal_buffer[index] = '\0';
 
 
-      uint8_t ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-       ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-      ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-            ch = uart_getc(UART_ID_SENSORS); // let "ch" be the character
-      buffer[index] = ch;              // save character
-      index++;                         // increment the index
-      printf("%c:\n", ch);
-
-
-
-    buffer[index] = 0;                 // add trailing null
-    printf("%s\n", buffer);            // print buffer (message from sensor)
-    buffer[0] = '\0';                  // clear buffer
-    printf("test 2\n");
-    index = 0;
-
-  sleep_ms(400); // allow time to receive response from sensor
-
+    // Print the full content of the buffer
+    printf("Received %d characters: %s\n", index, internal_buffer);
+      
+    // Wait before sending the next command
+    sleep_ms(400);
 }
 }
     
