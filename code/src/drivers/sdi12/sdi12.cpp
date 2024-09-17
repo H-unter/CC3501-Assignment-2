@@ -10,7 +10,7 @@ SDI12::SDI12(uart_inst_t *uart_instance)
     // Initialise the GPIOs to control whether data line is driven or received from
     gpio_init(enable_pin);
     // Initialize the UART
-    uart_init(uart_instance, enable_pin);
+    uart_init(uart_instance, SDI12_BAUD_RATE);
     gpio_set_function(tx_pin, GPIO_FUNC_UART);
     gpio_set_function(rx_pin, GPIO_FUNC_UART);
     uart_set_hw_flow(uart_instance, false, false);          // SDI-12 devices don’t support hardware flow control like CTS/RTS, so it isn't needed.
