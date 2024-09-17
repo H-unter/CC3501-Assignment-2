@@ -25,31 +25,40 @@ int main()
     // Initialize the Real-Time Clock (RTC)
     rtc_init();
 
-    puts("Hello, world!");
+    puts("Reading file from SD card...");
 
-    // See FatFs - Generic FAT Filesystem Module, "Application Interface",
-    // http://elm-chan.org/fsw/ff/00index_e.html
+    // Mount the SD card
     sd_card_t *pSD = sd_get_by_num(0);
     FRESULT fr = f_mount(&pSD->fatfs, pSD->pcName, 1);
     if (FR_OK != fr)
         panic("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+
     FIL fil;
     const char *const filename = "filename.txt";
-    fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
-    if (FR_OK != fr && FR_EXIST != fr)
+
+    // Open the file for reading
+    fr = f_open(&fil, filename, FA_READ);
+    if (FR_OK != fr)
         panic("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
-    if (f_printf(&fil, "Hello, world!\n") < 0)
+
+    // Read the file and print its content
+    char buffer[128];
+    while (f_gets(buffer, sizeof(buffer), &fil))
     {
-        printf("f_printf failed\n");
+        printf("%s", buffer);
     }
+
+    // Close the file
     fr = f_close(&fil);
     if (FR_OK != fr)
     {
         printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
     }
+
+    // Unmount the SD card
     f_unmount(pSD->pcName);
 
-    puts("Goodbye, world!");
+    puts("\nFinished reading file.");
     for (;;)
     {
         tight_loop_contents();
