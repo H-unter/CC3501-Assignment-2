@@ -12,10 +12,9 @@
 #define SDI12_MAX_TRANSMIT_TIME_CONCURRENT_MS 810 // max sensor transmitting time for concurrent measurement (longer than normal)
 
 // SPI and SD card related definitions
-#define SD_SPI_INSTANCE spi0 // SPI instance for SD card communication
-#define SD_SPI_MISO_PIN 16   // MISO (Master In Slave Out) GPIO pin: SD_MISO from schematic
-#define SD_SPI_SS_PIN 17     // Slave Select (SS) GPIO pin: SD_CS from schematic
-#define SD_SPI_SCK_PIN 18    // Clock (SCK) GPIO pin: SD_CLK from schematic
-#define SD_SPI_MOSI_PIN 19   // MOSI (Master Out Slave In) GPIO pin: SD_MOSI from schematic
-// #define SD_CARD_DETECT_PIN 22    // Card detect pin (keep as is if relevant)
+#define SD_SPI_INSTANCE spi0     // SPI instance for SD card communication
+#define SD_SPI_MISO_PIN 16       // MISO (Master In Slave Out) GPIO pin: SD_MISO from schematic
+#define SD_SPI_SS_PIN 17         // Slave Select (SS) GPIO pin: SD_CS from schematic
+#define SD_SPI_SCK_PIN 18        // Clock (SCK) GPIO pin: SD_CLK from schematic
+#define SD_SPI_MOSI_PIN 19       // MOSI (Master Out Slave In) GPIO pin: SD_MOSI from schematic
 #define SD_SPI_BAUD_RATE 1000000 // Baud rate for SD card SPI

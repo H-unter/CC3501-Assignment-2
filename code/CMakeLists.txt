@@ -55,6 +55,8 @@ if(CrossCompiling)
     target_link_libraries(labs
         pico_stdlib
         hardware_spi
+        hardware_adc      # Add this for ADC hardware
+        hardware_rtc      # Add this for RTC hardware
         hardware_i2c
         hardware_dma
         hardware_pio
@@ -82,6 +84,7 @@ else()
         src/main.cpp
         src/drivers/logging/logging.cpp
         src/drivers/sdi12/sdi12.cpp
+        src/libs/hw_config.c # configures the SD card hardware
         tests/mocks/pico/stdlib.cpp
         tests/mocks/pico/time.cpp
         tests/mocks/hardware/gpio.cpp
