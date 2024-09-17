@@ -17,7 +17,7 @@ if(CrossCompiling)
     # Specify an increased oscillator startup delay to work around a potential hardware issue where the 
     # clock is slow to boot.
     add_compile_definitions(PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64)
-
+ 
     # Pull in Raspberry Pi Pico SDK (must be before project)
     include(pico_sdk_import.cmake)
 
@@ -35,6 +35,7 @@ if(CrossCompiling)
         src/main.cpp
         src/drivers/logging/logging.cpp
         src/drivers/sdi12/sdi12.cpp
+        src/libs/hw_config.c   
     )
     target_include_directories(labs
         PUBLIC 

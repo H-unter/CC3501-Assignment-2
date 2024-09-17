@@ -18,127 +18,40 @@
 #include "drivers/logging/logging.h"
 #include "drivers/sdi12/sdi12.h"
 
-#define FILENAME_BUFFER_SIZE 128
-
-// Declare the file system object
-FATFS fs;
-
-// Declare the file object
-FIL file;
-
-// Buffer for reading/writing data
-char buffer[64];
-
-// Utility function to format the current date and time into strings
-void get_current_datetime(char *date, char *time)
-{
-    datetime_t t;
-    rtc_get_datetime(&t); // Get current time from RTC
-
-    // Format the date as YYYY-MM-DD and the time as HH
-    snprintf(date, FILENAME_BUFFER_SIZE, "%04d-%02d-%02d", t.year, t.month, t.day);
-    snprintf(time, FILENAME_BUFFER_SIZE, "%02d", t.hour);
-}
-
-// Function to initialize the temperature sensor
-void init_temperature_sensor()
-{
-    adc_init();
-    adc_set_temp_sensor_enabled(true); // Enable temperature sensor
-    adc_select_input(4);               // Select temperature sensor ADC channel (ADC4)
-}
-
-// Function to read temperature from the RP2040 internal sensor
-float read_temperature()
-{
-    const float conversion_factor = 3.3f / (1 << 12); // 12-bit ADC
-    uint16_t raw = adc_read();
-    float voltage = raw * conversion_factor;
-    float temperature = 27.0f - (voltage - 0.706f) / 0.001721f;
-    return temperature;
-}
-
 int main()
 {
-    stdio_init_all();          // Initialize stdio for printf
-    init_temperature_sensor(); // Initialize temperature sensor
-    rtc_init();                // Initialize the RTC
+    stdio_init_all();
 
-    FRESULT fr; // FatFs return code
+    // Initialize the Real-Time Clock (RTC)
+    rtc_init();
 
-    // Initialize the SD card driver (handled by the repo's SD driver)
-    sd_init_driver();
+    puts("Hello, world!");
 
-    // Mount the file system
-    fr = f_mount(&fs, "", 1);
-    if (fr != FR_OK)
+    // See FatFs - Generic FAT Filesystem Module, "Application Interface",
+    // http://elm-chan.org/fsw/ff/00index_e.html
+    sd_card_t *pSD = sd_get_by_num(0);
+    FRESULT fr = f_mount(&pSD->fatfs, pSD->pcName, 1);
+    if (FR_OK != fr)
+        panic("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+    FIL fil;
+    const char *const filename = "filename.txt";
+    fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
+    if (FR_OK != fr && FR_EXIST != fr)
+        panic("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
+    if (f_printf(&fil, "Hello, world!\n") < 0)
     {
-        printf("Failed to mount file system! Error: %d\n", fr);
-        while (true)
-            ; // Halt if the SD card can't be mounted
+        printf("f_printf failed\n");
     }
-
-    printf("File system mounted successfully!\n");
-
-    while (true)
+    fr = f_close(&fil);
+    if (FR_OK != fr)
     {
-        // Get current date and time strings
-        char date[FILENAME_BUFFER_SIZE], hour[FILENAME_BUFFER_SIZE];
-        get_current_datetime(date, hour);
-
-        // Build the file path using date and hour, e.g., /data/2021-03-21/11.csv
-        char filepath[FILENAME_BUFFER_SIZE];
-        snprintf(filepath, FILENAME_BUFFER_SIZE, "/data/%s/%s.csv", date, hour);
-
-        // Create the directory if it doesn't exist
-        fr = f_mkdir(filepath);
-        if (fr != FR_OK && fr != FR_EXIST)
-        {
-            printf("Failed to create directory! Error: %d\n", fr);
-        }
-
-        // Open the CSV file for appending temperature data
-        fr = f_open(&file, filepath, FA_OPEN_APPEND | FA_WRITE);
-        if (fr != FR_OK)
-        {
-            printf("Failed to open file! Error: %d\n", fr);
-            while (true)
-                ; // Halt if the file can't be opened
-        }
-
-        // Read the current temperature
-        float temperature = read_temperature();
-
-        // Get the current time for the log entry
-        char time[FILENAME_BUFFER_SIZE];
-        datetime_t t;
-        rtc_get_datetime(&t);
-        snprintf(time, FILENAME_BUFFER_SIZE, "%02d:%02d:%02d", t.hour, t.min, t.sec);
-
-        // Prepare the log entry (time and temperature)
-        snprintf(buffer, sizeof(buffer), "%s,%.2f\n", time, temperature);
-
-        // Write the log entry to the file
-        UINT bytesWritten;
-        fr = f_write(&file, buffer, strlen(buffer), &bytesWritten);
-        if (fr != FR_OK)
-        {
-            printf("Failed to write to file! Error: %d\n", fr);
-        }
-        else
-        {
-            printf("Logged data: %s", buffer); // Print log entry to console
-        }
-
-        // Close the file
-        f_close(&file);
-
-        // Sleep for 1 second before taking the next temperature reading
-        sleep_ms(1000);
+        printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
     }
+    f_unmount(pSD->pcName);
 
-    // Unmount the file system before exiting (though we'll never reach this in this loop)
-    f_unmount("");
-
-    return 0;
+    puts("Goodbye, world!");
+    for (;;)
+    {
+        tight_loop_contents();
+    }
 }
