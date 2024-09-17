@@ -1,0 +1,3 @@
+[submodule "code/src/libs/no-OS-FatFS"]
+	path = code/src/libs/no-OS-FatFS
+	url = https://github.com/carlk3/no-OS-FatFS-SD-SPI-RPi-Pico.git
