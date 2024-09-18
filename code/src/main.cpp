@@ -18,58 +18,56 @@
 
 // Function declarations
 bool mount_sd_card(sd_card_t **pSD);
-bool log_temperature();
-bool open_file(FIL *fp);
+bool open_log_file(FIL *fp);
+bool log_temperature(FIL *fp);
 bool print_header(FIL *fp);
 
-// Structure to hold the initial time data from config.txt
-typedef struct
+void list_files(const char *directory)
 {
-    int16_t year;
-    int8_t month, day, hour, min, sec, dotw;
-} ConfigTime;
+    DIR dir;     // Directory object
+    FILINFO fno; // File information object
+    FRESULT res;
 
-int parse_time_config(const char *filename, ConfigTime *config)
-{
-    printf("Attempting to open file: %s\n", filename);
-
-    FILE *file = fopen("0:/config.txt", "r");
-    if (!file)
+    // Open the directory
+    res = f_opendir(&dir, directory);
+    if (res != FR_OK)
     {
-        printf("Failed to open %s\n", filename);
-        return 0;
+        printf("Failed to open directory: %s, error code: %d\n", directory, res);
+        return;
     }
 
-    printf("File %s opened successfully.\n", filename);
-
-    // Parse the config.txt file
-    int scanned = fscanf(file, "time = {\n .year  = %d,\n .month = %d,\n .day   = %d,\n .dotw  = %d,\n .hour  = %d,\n .min   = %d,\n .sec   = %d\n}",
-                         &config->year, &config->month, &config->day, &config->dotw, &config->hour, &config->min, &config->sec);
-
-    if (scanned == 7)
+    // Read files and directories
+    while (true)
     {
-        printf("Time config parsed successfully.\n");
-    }
-    else
-    {
-        printf("Error parsing config.txt, scanned fields: %d\n", scanned);
+        res = f_readdir(&dir, &fno); // Read a directory item
+        if (res != FR_OK || fno.fname[0] == 0)
+        {
+            break; // Break on error or end of directory
+        }
+
+        if (fno.fattrib & AM_DIR)
+        {
+            printf("[DIR] %s\n", fno.fname); // It's a directory
+        }
+        else
+        {
+            printf("[FILE] %s (%lu bytes)\n", fno.fname, fno.fsize); // It's a file
+        }
     }
 
-    fclose(file);
-    return (scanned == 7); // Return 1 if successfully scanned all 7 fields
+    f_closedir(&dir); // Close the directory
 }
 
-void set_rtc_from_config(ConfigTime config)
+void set_hardcoded_rtc()
 {
-    printf("Setting RTC from config...\n");
     datetime_t t = {
-        .year = config.year,
-        .month = config.month,
-        .day = config.day,
-        .dotw = config.dotw, // Day of the week (0=Sunday, etc.)
-        .hour = config.hour,
-        .min = config.min,
-        .sec = config.sec};
+        .year = 2024,
+        .month = 9,
+        .day = 18,
+        .dotw = 3, // Wednesday (Sun=0, Mon=1, Tue=2, etc.)
+        .hour = 14,
+        .min = 30,
+        .sec = 0};
 
     rtc_init();
     if (rtc_set_datetime(&t) != 0)
@@ -86,10 +84,6 @@ int main()
 {
     stdio_init_all(); // Initialize all standard IO
 
-    // Initialize the Real-Time Clock (RTC)
-    rtc_init();
-    ConfigTime startTime;
-
     puts("Starting system...");
 
     // Mount the SD card
@@ -100,55 +94,39 @@ int main()
         return -1;
     }
     puts("SD card mounted successfully.");
+    list_files("/"); // List files in the root directory of the SD card
+    // Set the RTC with a hardcoded date and time
+    set_hardcoded_rtc();
 
-    DIR dir;
-    FILINFO fno;
-    FRESULT fr = f_opendir(&dir, "/"); // Open root directory
-    if (fr == FR_OK)
+    FIL fil;
+    if (!open_log_file(&fil))
     {
-        while (true)
+        puts("Failed to open log file.");
+        return -1;
+    }
+
+    // Loop to log temperature 3 times
+    for (int i = 0; i < 3; i++)
+    {
+        if (!log_temperature(&fil))
         {
-            fr = f_readdir(&dir, &fno); // Read directory
-            if (fr != FR_OK || fno.fname[0] == 0)
-                break; // Break on error or end of directory
-            printf("Found file: %s\n", fno.fname);
+            puts("Failed to log temperature data!");
         }
-        f_closedir(&dir);
-    }
-    else
-    {
-        printf("Failed to open directory\n");
-    }
-
-    // Read time configuration from config.txt
-    if (!parse_time_config("config.txt", &startTime))
-    {
-        printf("Error reading config file\n");
-        return 1;
+        else
+        {
+            printf("Temperature data logged successfully (%d/3).\n", i + 1);
+        }
+        // Delay 1 second between data logs for demonstration
+        sleep_ms(1000);
     }
 
-    // Set RTC with the parsed start time
-    set_rtc_from_config(startTime);
-
-    // Log the temperature data to the SD card
-    if (!log_temperature())
-    {
-        puts("Failed to log temperature data!");
-    }
-    else
-    {
-        puts("Temperature data logged successfully.");
-    }
+    // Close the log file after all logs
+    f_close(&fil);
 
     // Unmount the SD card
     f_unmount(pSD->pcName);
 
-    puts("Finished. Goodbye!");
-    while (true)
-    {
-        tight_loop_contents(); // Loop infinitely to keep the system alive
-    }
-
+    puts("Finished logging data. Goodbye!");
     return 0;
 }
 
@@ -166,73 +144,18 @@ bool mount_sd_card(sd_card_t **pSD)
     return true;
 }
 
-// Function to log temperature to a CSV file
-bool log_temperature()
-{
-    FIL fil; // File object
-    printf("Opening file to log temperature...\n");
-    bool rc = open_file(&fil); // Open or create the CSV file
-    if (!rc)
-    {
-        printf("Failed to open or create the file.\n");
-        return false;
-    }
-
-    // Get current time
-    char buf[128];
-    const time_t secs = time(NULL);
-    struct tm tmbuf;
-    struct tm *ptm = localtime_r(&secs, &tmbuf);
-    size_t n = strftime(buf, sizeof buf, "%F,%T,", ptm);
-    myASSERT(n);
-
-    printf("Logging temperature data...\n");
-
-    // Read the temperature from ADC input 4
-    adc_select_input(4);
-    uint16_t result = adc_read();
-    const float conversion_factor = 3.3f / (1 << 12);
-    float voltage = conversion_factor * result;
-
-    // Calculate temperature in °C
-    float temperature = 27.0f - (voltage - 0.706f) / 0.001721f;
-    int nw = snprintf(buf + n, sizeof buf - n, "%.3g\n", (double)temperature);
-    myASSERT(0 < nw && nw < (int)sizeof buf);
-
-    printf("Temperature = %.1f °C\n", temperature);
-
-    // Write the temperature data to the file
-    if (f_printf(&fil, "%s", buf) < 0)
-    {
-        printf("f_printf failed\n");
-        f_close(&fil); // Ensure the file is closed
-        return false;
-    }
-
-    // Close the file
-    FRESULT fr = f_close(&fil);
-    if (FR_OK != fr)
-    {
-        printf("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
-        return false;
-    }
-
-    return true;
-}
-
 // Open or create the file with a structured name based on current date and time
-bool open_file(FIL *fp)
+bool open_log_file(FIL *fp)
 {
-    const time_t timer = time(NULL);
-    struct tm tmbuf;
-    localtime_r(&timer, &tmbuf);
+    datetime_t datetime;
+    rtc_get_datetime(&datetime); // Get the current time from RTC
 
     char filename[64];
 
     printf("Creating or opening file for logging...\n");
 
     // Create the root-level "data" directory (relative to SD card root)
-    snprintf(filename, sizeof(filename), "0:/data"); // Use "0:" as root of SD card
+    snprintf(filename, sizeof(filename), "0:/data");
     FRESULT fr = f_mkdir(filename);
     if (FR_OK != fr && FR_EXIST != fr)
     {
@@ -242,7 +165,7 @@ bool open_file(FIL *fp)
 
     // Create the subdirectory for the current date
     snprintf(filename, sizeof(filename), "0:/data/%04d-%02d-%02d",
-             tmbuf.tm_year + 1900, tmbuf.tm_mon + 1, tmbuf.tm_mday);
+             datetime.year, datetime.month, datetime.day);
     fr = f_mkdir(filename);
     if (FR_OK != fr && FR_EXIST != fr)
     {
@@ -251,7 +174,7 @@ bool open_file(FIL *fp)
     }
 
     // Create or open the file for the current hour
-    snprintf(filename + strlen(filename), sizeof(filename) - strlen(filename), "/%02d.csv", tmbuf.tm_hour);
+    snprintf(filename + strlen(filename), sizeof(filename) - strlen(filename), "/%02d.csv", datetime.hour);
     fr = f_open(fp, filename, FA_OPEN_APPEND | FA_WRITE);
     if (FR_OK != fr)
     {
@@ -263,6 +186,56 @@ bool open_file(FIL *fp)
 
     // Print the header if the file is empty
     return print_header(fp);
+}
+
+// Function to log temperature to a CSV file
+bool log_temperature(FIL *fp)
+{
+    char buf[128];
+    datetime_t datetime;
+    rtc_get_datetime(&datetime); // Use RTC for current time
+    snprintf(buf, sizeof(buf), "%04d-%02d-%02d,%02d:%02d:%02d,",
+             datetime.year, datetime.month, datetime.day,
+             datetime.hour, datetime.min, datetime.sec);
+
+    printf("Logging temperature data...\n");
+
+    // Initialize the ADC (in case it's not initialized elsewhere)
+    adc_init();
+    adc_gpio_init(28);   // Initialize GPIO pin 28 for ADC input
+    adc_select_input(4); // Select ADC input 4
+
+    // Read the temperature from ADC input 4
+    uint16_t result = adc_read();
+    printf("ADC raw value: %d\n", result); // Print the raw ADC value
+    const float conversion_factor = 3.3f / (1 << 12);
+    float voltage = conversion_factor * result;
+    printf("Calculated voltage: %.3f V\n", voltage); // Print the voltage
+
+    // Calculate temperature in °C
+    float temperature = 27.0f - (voltage - 0.706f) / 0.001721f;
+    printf("Calculated temperature: %.3f °C\n", temperature); // Print the temperature
+    int nw = snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), "%.3g\n", (double)temperature);
+    myASSERT(0 < nw && nw < (int)sizeof buf);
+
+    // Write the temperature data to the file
+    printf("Writing data to file...\n");
+    if (f_printf(fp, "%s", buf) < 0)
+    {
+        printf("f_printf failed\n");
+        return false;
+    }
+
+    // Flush the file buffers to ensure data is written to the SD card
+    printf("Flushing data to SD card...\n");
+    FRESULT fr = f_sync(fp);
+    if (FR_OK != fr)
+    {
+        printf("f_sync error: %s (%d)\n", FRESULT_str(fr), fr);
+        return false;
+    }
+
+    return true;
 }
 
 // Print the header to the CSV file if it's empty
