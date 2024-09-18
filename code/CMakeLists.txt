@@ -35,6 +35,7 @@ if(CrossCompiling)
         src/main.cpp
         src/drivers/logging/logging.cpp
         src/drivers/sdi12/sdi12.cpp
+        src/drivers/sd_card/sd_card.cpp
         src/libs/hw_config.c   
     )
     target_include_directories(labs
