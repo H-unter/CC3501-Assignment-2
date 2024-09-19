@@ -1,61 +1,55 @@
 #ifndef SD_CARD_H
 #define SD_CARD_H
 
-#include <stdio.h>
-#include "ff.h"
 #include <string>
 #include <vector>
+#include "ff.h" // FatFs library
 
-/*!
- * \brief SDCard class handles mounting, unmounting, and file operations on the SD card.
- */
 class SDCard
 {
 public:
     /*!
-     * \brief Constructor: Initializes the SD card object.
+     * \brief SDCard Constructor
      */
     SDCard();
 
     /*!
-     * \brief Mounts the SD card.
-     *
-     * This function mounts the SD card using the FatFs library.
-     * It must be called before any file operations are performed.
-     *
-     * \return true if the SD card was mounted successfully, false otherwise.
+     * \brief Mount the SD card
+     * \return true if the SD card is successfully mounted, false otherwise
      */
     bool mount();
 
     /*!
-     * \brief Unmounts the SD card.
-     *
-     * This function unmounts the SD card to safely stop file operations.
+     * \brief Unmount the SD card
+     * \return true if the SD card is successfully unmounted, false otherwise
      */
-    void unmount();
+    bool unmount();
 
     /*!
-     * \brief Writes a string to a specified file on the SD card.
-     *
-     * \param filename The name of the file to write to.
-     * \param data The data to write to the file.
-     * \return true if the data was written successfully, false otherwise.
+     * \brief Open a file on the SD card for writing or appending
+     * \param filename The name of the file to open
+     * \param file FIL object to hold the file reference
+     * \return true if the file is successfully opened, false otherwise
      */
-    bool write_file(const std::string &filename, const std::string &data);
+    bool open_file(const std::string &filename, FIL &file);
 
     /*!
-     * \brief Lists files and directories in a specified directory on the SD card.
-     *
-     * This function retrieves all files and directories in the specified directory.
-     *
-     * \param directory The directory to list (e.g., "/").
-     * \return A vector of strings representing the file and directory names.
+     * \brief Close the file on the SD card
+     * \param file The FIL object representing the file to close
+     * \return true if the file is successfully closed, false otherwise
      */
-    std::vector<std::string> list_files(const std::string &directory);
+    bool close_file(FIL &file);
+
+    /*!
+     * \brief Write data to the open file on the SD card and flush to disk
+     * \param file The open file object
+     * \param data The string data to write
+     * \return true if data is successfully written and synced, false otherwise
+     */
+    bool write_file_sync(FIL &file, const std::string &data);
 
 private:
-    FATFS fs;     // FatFs file system object
-    bool mounted; // Indicates whether the SD card is currently mounted
+    FATFS fatfs; // FatFs file system object
 };
 
 #endif // SD_CARD_H
