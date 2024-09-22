@@ -4,7 +4,7 @@
 
 
 # Define R_G as a variable
-R_G <- 670  # Example value, you can change this
+R_G <- 670  
 
 # Compute the expression
 G <- 1 + (49.4 * 10^3 / R_G)
@@ -19,12 +19,12 @@ linear_model_with_deadzone <- lm(m ~ v_raw)  # With deadzone
 linear_model_without_deadzone <- lm(m ~ v_raw, subset = -deadzone_indeces)  # Exclude deadzone
 
 # Plot the data
-plot(v_raw, m, main = "Linear Model of Given Data", xlab = "Raw Voltage (V)", ylab = "Mass (kg)", pch = 16, col = "blue")
+plot(v_raw, m, main = "Linear Model of Collected Data", xlab = "Raw Voltage (V)", ylab = "Mass (kg)", pch = 16)
 
 # Add linear regression lines
 abline(linear_model_with_deadzone, col = "blue", lty = 2)  # With deadzone (dashed)
 abline(linear_model_without_deadzone, col = "red")  # Without deadzone (solid)
 
 # Add legend
-legend("topleft", legend = c("With Deadzone", "Without Deadzone"), col = c("blue", "red"), lty = c(2, 1), pch = 16)
+legend("topleft", legend = c("Naive", "Deadzone Consideration"), col = c("blue", "red"), lty = c(2, 1), pch = 16)
 
