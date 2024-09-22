@@ -8,7 +8,6 @@ else()
     message(STATUS "Detected that the current kit is a host compiler. Building the test harness.")
 endif()
 
-# Detect if the active kit is an ARM cross-compiler
 if(CrossCompiling)
     # Yes, build for the RP2040
 
@@ -18,12 +17,15 @@ if(CrossCompiling)
     # Specify an increased oscillator startup delay to work around a potential hardware issue where the 
     # clock is slow to boot.
     add_compile_definitions(PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64)
-
+ 
     # Pull in Raspberry Pi Pico SDK (must be before project)
     include(pico_sdk_import.cmake)
 
+    # Add the FatFs_SPI submodule (core library for SD card and FatFs)
+    add_subdirectory(src/libs/no-OS-FatFS/FatFs_SPI)  # This is the main CMakeLists.txt for FatFs and SPI
+
     project(cc3501-labs C CXX ASM)
-    
+
     # Initialise the Raspberry Pi Pico SDK
     pico_sdk_init()
 
@@ -33,6 +35,8 @@ if(CrossCompiling)
         src/main.cpp
         src/drivers/logging/logging.cpp
         src/drivers/sdi12/sdi12.cpp
+        src/drivers/sd_card/sd_card.cpp
+        src/libs/hw_config.c   
     )
     target_include_directories(labs
         PUBLIC 
@@ -49,10 +53,12 @@ if(CrossCompiling)
     # compile the PIO file
     pico_generate_pio_header(labs ${CMAKE_CURRENT_LIST_DIR}/src/drivers/WS2812/WS2812.pio)
 
-    # Add the standard library to the build
+    # Add the standard library and FatFs_SPI to the build
     target_link_libraries(labs
         pico_stdlib
         hardware_spi
+        hardware_adc      # Add this for ADC hardware
+        hardware_rtc      # Add this for RTC hardware
         hardware_i2c
         hardware_dma
         hardware_pio
@@ -61,6 +67,7 @@ if(CrossCompiling)
         hardware_watchdog
         hardware_clocks
         hardware_pwm
+        FatFs_SPI  # Link the FatFs_SPI library from the submodule
     )
 
     pico_add_extra_outputs(labs)
@@ -79,6 +86,7 @@ else()
         src/main.cpp
         src/drivers/logging/logging.cpp
         src/drivers/sdi12/sdi12.cpp
+        src/libs/hw_config.c # configures the SD card hardware
         tests/mocks/pico/stdlib.cpp
         tests/mocks/pico/time.cpp
         tests/mocks/hardware/gpio.cpp
