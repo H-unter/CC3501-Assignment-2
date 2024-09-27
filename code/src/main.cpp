@@ -10,6 +10,7 @@
 #include "drivers/sdi12/sdi12.h"
 
 #include <string>
+#include <math.h>
 
 #define ADC_VOLTAGE_CONVERSION_FACTOR (3.3f / (1 << 12)) // pg 79 of SDK datasheet
 #define ALPHA 0.01f                                      // smoothing
@@ -22,6 +23,12 @@ float get_adc_voltage()
 float get_new_average(float newest_sample, float old_average)
 {
     return ALPHA * newest_sample + (1.0f - ALPHA) * old_average;
+}
+
+float mass(float voltage)
+{
+    // polynomial model from R script
+    return -0.4108181 + 3.2397531 * voltage - 1.5099098 * pow(voltage, 2) + 1.7197607 * pow(voltage, 3) - 0.3855563 * pow(voltage, 4);
 }
 
 int main()
@@ -38,7 +45,7 @@ int main()
     {
         float voltage = get_adc_voltage();
         smoothed_voltage = get_new_average(voltage, smoothed_voltage);
-        float mass_kg = (3.4548 * smoothed_voltage) - 0.4554;
+        float mass_kg = mass(smoothed_voltage);
         printf("%f,%f\n", smoothed_voltage, mass_kg);
         sleep_ms(1);
     }
