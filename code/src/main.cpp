@@ -17,9 +17,9 @@ int main()
 {
     stdio_init_all();
 
-    // Create a LoadCell object with the specified ADC pin
-    LoadCell loadcell(26, 0.02f);
-    loadcell.init(); // Initialize ADC
+    // Create a LoadCell object
+    LoadCell loadcell;
+    loadcell.init(26, ALPHA); // Initialize ADC and smoothing factor
 
     while (true)
     {

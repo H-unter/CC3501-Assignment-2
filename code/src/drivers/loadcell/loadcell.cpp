@@ -1,12 +1,19 @@
 #include "loadcell.h"
 
 // Constructor for LoadCell class
-LoadCell::LoadCell(int adc_pin, float alpha, float conversion_factor)
-    : adc_pin(adc_pin), alpha(alpha), conversion_factor(conversion_factor), smoothed_voltage(0.0f) {}
+LoadCell::LoadCell() : adc_pin(0), alpha(0.01f) {}
 
-// Initialize the ADC for the given pin
-void LoadCell::init()
+/*!
+ * \brief Initialize the LoadCell class, ADC pin, and smoothing factor
+ * This method initializes the ADC, sets the appropriate ADC pin for the load cell, and configures the smoothing factor for voltage.
+ * \param adc_pin The ADC pin connected to the load cell
+ * \param alpha The smoothing factor for voltage (default is 0.01)
+ */
+void LoadCell::init(int adc_pin, float alpha)
 {
+    this->adc_pin = adc_pin;
+    this->alpha = alpha;
+
     adc_init();
     adc_gpio_init(adc_pin);
     adc_select_input(0); // Assuming input 0 for the ADC
