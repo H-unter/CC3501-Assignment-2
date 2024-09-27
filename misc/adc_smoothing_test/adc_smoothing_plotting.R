@@ -13,7 +13,7 @@ plot(
   ylim = range(c(readings$voltage, readings$moving_average_.01, 
                  readings$moving_average_.05, readings$moving_average_.10, 
                  readings$moving_average_.20)), # Adjust y-axis to fit all series
-  main = "Raw and Smoothed Voltages (Exponential Moving Average)"
+  main = "Raw and Smoothed Voltages (Exponential Moving Average); lower alpha is more smoothing"
 )
 
 # Add lines for each smoothed moving average level

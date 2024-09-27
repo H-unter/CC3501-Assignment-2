@@ -19,6 +19,11 @@ float get_adc_voltage()
     return adc_read() * ADC_VOLTAGE_CONVERSION_FACTOR;
 }
 
+float get_new_average(float newest_sample, float old_average)
+{
+    return ALPHA * newest_sample + (1.0f - ALPHA) * old_average;
+}
+
 int main()
 {
     stdio_init_all();
@@ -27,19 +32,14 @@ int main()
     adc_select_input(0); // Select ADC input 0 (GPIO26)
     printf("--------------------\n\n\n\n\n\n");
 
-    float moving_average_01 = get_adc_voltage(); // Initialize EMA (can also initialize with the first ADC value if needed)
-    float moving_average_05 = get_adc_voltage();
-    float moving_average_10 = get_adc_voltage();
-    float moving_average_20 = get_adc_voltage();
+    float smoothed_voltage = get_adc_voltage();
 
     while (true)
     {
         float voltage = get_adc_voltage();
-        moving_average_01 = 0.01f * voltage + (1.0f - 0.01f) * moving_average_01;
-        moving_average_05 = 0.05f * voltage + (1.0f - 0.05f) * moving_average_05;
-        moving_average_10 = 0.10f * voltage + (1.0f - 0.10f) * moving_average_10;
-        moving_average_20 = 0.20f * voltage + (1.0f - 0.20f) * moving_average_20;
-        printf("%f,%f,%f,%f,%f\n", voltage, moving_average_01, moving_average_05, moving_average_10, moving_average_20); // Print both raw and EMA voltage
+        smoothed_voltage = get_new_average(voltage, smoothed_voltage);
+        float mass_kg = (3.4548 * smoothed_voltage) - 0.4554;
+        printf("%f,%f\n", smoothed_voltage, mass_kg);
         sleep_ms(1);
     }
 }
