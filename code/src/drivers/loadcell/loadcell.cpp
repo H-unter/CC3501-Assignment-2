@@ -36,7 +36,14 @@ float LoadCell::smooth_voltage(float newest_sample)
 float LoadCell::calculate_mass(float voltage)
 {
     // Polynomial model from R
-    return -0.4108181 + 3.2397531 * voltage - 1.5099098 * pow(voltage, 2) + 1.7197607 * pow(voltage, 3) - 0.3855563 * pow(voltage, 4);
+    float mass_kg = -0.4108181 + 3.2397531 * voltage - 1.5099098 * pow(voltage, 2) + 1.7197607 * pow(voltage, 3) - 0.3855563 * pow(voltage, 4);
+    float threshold = 0.1f;
+    bool is_close_to_zero = (mass_kg < threshold && mass_kg > -threshold);
+    if (is_close_to_zero)
+    {
+        mass_kg = 0.0f;
+    }
+    return mass_kg;
 }
 
 // Public method to sample the voltage and return the mass

@@ -30,3 +30,5 @@ abline(linear_model, col = "red")
 abline(polynomial_model, col = "darkgreen")
 lines(spline_model, col = "blue", lwd = 2)
 
+coef(polynomial_model)
+
