@@ -1,3 +1,0 @@
-C:/Users/cheva/OneDrive/Desktop/CC2511/LABS/labs-qbouet23/Lab7/build/pioasm/CMakeFiles/pioasm.dir
-C:/Users/cheva/OneDrive/Desktop/CC2511/LABS/labs-qbouet23/Lab7/build/pioasm/CMakeFiles/edit_cache.dir
-C:/Users/cheva/OneDrive/Desktop/CC2511/LABS/labs-qbouet23/Lab7/build/pioasm/CMakeFiles/rebuild_cache.dir
