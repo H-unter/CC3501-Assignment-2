@@ -1,7 +1,9 @@
 #ifndef DAC_H
 #define DAC_H
-
-class DAC {
+#include <stdio.h>
+#include <stdint.h>
+class DAC
+{
 public:
     // Constructor
     DAC();
