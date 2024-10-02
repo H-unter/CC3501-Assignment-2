@@ -61,31 +61,39 @@ int main()
     // Initialize the load cell
     LoadCell loadcell;
     loadcell.init(26, ALPHA); // Initialize ADC and smoothing factor
+
     SDCard sd_card;
 
     // Mount the SD card
     if (!sd_card.mount())
     {
         printf("Failed to mount SD card.\n");
-        return 0;
+        return 1;
     }
     printf("SD card mounted successfully.\n");
-    FIL file; // Open the CSV file for logging
+
+    // Open the CSV file for logging
+    FIL file;
     if (!sd_card.open_file("loadcell_log.csv", file))
     {
         printf("Failed to open log file.\n");
-        return 0;
+        return 1;
     }
-
     printf("File opened for logging.\n");
+
+    // Write the CSV header
     write_csv_header(sd_card, file);
+
+    // Get the start time in milliseconds
     uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
-    u_int32_t elapsed_time_ms = get_elapsed_time_ms(start_time_ms);
+
+    // Loop to collect and save samples for 5 seconds
+    uint32_t elapsed_time_ms = 0;
     while (elapsed_time_ms < 5000)
     {
-        save_sample(sd_card, file, loadcell, elapsed_time_ms);
-        sleep_ms(100);
         elapsed_time_ms = get_elapsed_time_ms(start_time_ms);
+        save_sample(sd_card, file, loadcell, elapsed_time_ms);
+        sleep_ms(1);
     }
 
     // Close the file and unmount the SD card

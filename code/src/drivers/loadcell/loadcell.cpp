@@ -13,10 +13,12 @@ void LoadCell::init(int adc_pin, float alpha)
 {
     this->adc_pin = adc_pin;
     this->alpha = alpha;
+    // TODO: make alpha propotional to sampling rate
 
     adc_init();
     adc_gpio_init(adc_pin);
     adc_select_input(0); // Assuming input 0 for the ADC
+    smoothed_voltage = read_voltage();
 }
 
 // Read the ADC value and convert it to voltage
@@ -49,7 +51,7 @@ float LoadCell::calculate_mass(float voltage)
 // Public method to sample the voltage and return the mass
 float LoadCell::sample_mass()
 {
-    float voltage = read_voltage();                // Read new voltage
-    float smoothed_volt = smooth_voltage(voltage); // Smooth the voltage
-    return calculate_mass(smoothed_volt);          // Calculate and return the mass
+    float voltage = read_voltage();                   // Read new voltage
+    float smoothed_voltage = smooth_voltage(voltage); // Smooth the voltage
+    return calculate_mass(smoothed_voltage);          // Calculate and return the mass
 }
