@@ -8,7 +8,7 @@
 #define DAC_I2C_INSTANCE i2c0
 #define DAC_SDA_PIN 7
 #define DAC_SCL_PIN 6
-#define DAC_ADDR 0x60                // I2C address of the MCP4716A0 (10 bits)
+#define DAC_ADDR 0b11000000                // I2C address of the MCP4716A0 (10 bits)
 #define DAC_I2C_BAUD_RATE 100 * 1000 // Standard mode is 100kHz
 
 // Constructor
@@ -48,17 +48,17 @@ void DAC::set_voltage(float voltage) {
     voltage = 5.0f;
   }
 
-  // Scale voltage to the DAC range (0-4095)
-  uint16_t value = (uint16_t)((voltage / 5.0f) * 4095.0f);
+  // Scale voltage to the DAC range (0-1023 for a 10-bit DAC)
+  uint16_t value = (uint16_t)((voltage / 5.0f) * 1023.0f);
 
-  // Write the scaled value to the volatile DAC register
-  uint8_t data[3];
-  data[0] = 0b01000000;             // Control byte (010: normal operation)
-  data[1] = (value >> 4) & 0xFF;    // High byte (8 MSBs)
-  data[2] = (value << 4) & 0xFF;    // Low byte (4 LSBs)
+  // Prepare the command and data bytes
+  // Match this format: 0 0 0 0 D09 D08 D07 D06 D05 D04 D03 D02 D01 D00 X X
+  uint8_t data[2];
+  data[0] = (value >> 6) & 0x3F;  // Extract D09 to D04 and mask lower bits
+  data[1] = (value << 2) & 0xFC;  // Extract D03 to D00, and shift left for X X bits
 
   // Write the data to the DAC via I2C
-  i2c_write_blocking(DAC_I2C_INSTANCE, DAC_ADDR, data, 3, false);
+  i2c_write_blocking(DAC_I2C_INSTANCE, DAC_ADDR, data, 2, false);
 }
 
 bool DAC::dac_write_register(uint8_t reg, uint8_t data) {
