@@ -12,7 +12,11 @@ public:
     void init();
 
     // Method to set DAC voltage
-    void set_voltage(uint16_t);
+    void set_voltage(float);
+
+    bool dac_write_register(uint8_t, uint8_t);
+
+    void configure_default();
 };
 
 #endif // DAC_H

@@ -12,6 +12,7 @@
 #include "drivers/loadcell/loadcell.h"
 #include "drivers/sd_card/sd_card.h"
 #include "ff.h" // For 'FIL' definition
+#include "drivers/dac/dac.h"
 
 #include <string>
 #include <math.h>
@@ -58,48 +59,12 @@ int main()
     // Initialize stdio and peripherals
     stdio_init_all();
 
-    // Initialize the load cell
-    LoadCell loadcell;
-    loadcell.init(LOADCELL0_ADC_PIN, ALPHA); // Initialize ADC and smoothing factor
+    DAC dpg;
 
-    SDCard sd_card;
-
-    // Mount the SD card
-    if (!sd_card.mount())
-    {
-        printf("Failed to mount SD card.\n");
-        return 1;
-    }
-    printf("SD card mounted successfully.\n");
-
-    // Open the CSV file for logging
-    FIL file;
-    if (!sd_card.open_file("loadcell_log.csv", file))
-    {
-        printf("Failed to open log file.\n");
-        return 1;
-    }
-    printf("File opened for logging.\n");
-
-    // Write the CSV header
-    write_csv_header(sd_card, file);
-
-    // Get the start time in milliseconds
-    uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
-
-    // Loop to collect and save samples for 5 seconds
-    uint32_t elapsed_time_ms = 0;
-    while (elapsed_time_ms < 5000)
-    {
-        elapsed_time_ms = get_elapsed_time_ms(start_time_ms);
-        save_sample(sd_card, file, loadcell, elapsed_time_ms);
-        sleep_ms(1);
+    dpg.init();
+    while(true){
+        dpg.set_voltage(2.5);
+        sleep_ms(10);
     }
 
-    // Close the file and unmount the SD card
-    sd_card.close_file(file);
-    sd_card.unmount();
-    printf("Logging finished. SD card unmounted.\n");
-
-    return 0;
 }
