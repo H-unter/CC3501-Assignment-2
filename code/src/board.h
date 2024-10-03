@@ -1,8 +1,8 @@
 // hardware related definitions
 #define SDI12_UART_INSTANCE uart1 //
-#define SDI12_UART_TX_PIN 4
-#define SDI12_UART_RX_PIN 5
-#define ENABLE_DRIVE_PIN 3 // for SDI12 data line drive enable TODO: rename for cleanliness
+#define SDI12_UART_TX_PIN 8
+#define SDI12_UART_RX_PIN 9
+#define ENABLE_DRIVE_PIN 15 // for SDI12 data line drive enable TODO: rename for cleanliness
 
 // sdi-12 parameter definitions
 #define SDI12_BAUD_RATE 1200
@@ -19,6 +19,6 @@
 #define SD_SPI_BAUD_RATE 1000000 // Baud rate for SD card SPI
 
 // loadcell definitions
-#define ALPHA 0.01f
-#define LOADCELL0_ADC_PIN 26 // ADC pin for load cell 0
-#define LOADCELL1_ADC_PIN 27 // ADC pin for load cell 1
+#define ALPHA 0.00f          // no smoothing because its kinda bad
+#define LOADCELL0_ADC_PIN 27 // ADC pin for load cell 0
+#define LOADCELL1_ADC_PIN 28 // ADC pin for load cell 1

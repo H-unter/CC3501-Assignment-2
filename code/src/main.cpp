@@ -60,7 +60,7 @@ int main()
 
     // Initialize the load cell
     LoadCell loadcell;
-    loadcell.init(26, ALPHA); // Initialize ADC and smoothing factor
+    loadcell.init(LOADCELL0_ADC_PIN, ALPHA); // Initialize ADC and smoothing factor
 
     SDCard sd_card;
 
