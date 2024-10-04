@@ -1,10 +1,11 @@
 #include "dac.h"
-
+# include "board.h"
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "drivers/logging/logging.h"
 
+// Move to board.h when working
 #define DAC_I2C_INSTANCE i2c0
 #define DAC_SDA_PIN 7
 #define DAC_SCL_PIN 6
@@ -12,14 +13,11 @@
 #define DAC_I2C_BAUD_RATE 100 * 1000 // Standard mode is 100kHz
 
 // Constructor
-DAC::DAC()
-{
-  // Initialization can be done here if needed
+DAC::DAC() {
 }
 
 // Initialize DAC and I2C communication
-void DAC::init()
-{
+void DAC::init() {
   // Initialize I2C at 100kHz
   i2c_init(DAC_I2C_INSTANCE, DAC_I2C_BAUD_RATE);
 
@@ -32,7 +30,7 @@ void DAC::init()
 }
 
 void DAC::configure_default() {
-  // Set configuration bits to default values
+  // Set configuration bits to default values:
   // 1 0 0 VREF1 VREF0 PD1 PD0 G
   //                          \_/
   //                   \_____/Gain      => 1x
@@ -61,8 +59,14 @@ void DAC::set_voltage(float voltage) {
   // Scale voltage to the DAC range (0-1023 for a 10-bit DAC)
   uint16_t value = (uint16_t)((voltage / 5.0f) * 1023.0f);
 
-  // Prepare the command and data bytes
-  // Match this format: 0 0 0 0 D09 D08 D07 D06 D05 D04 D03 D02 D01 D00 X X
+  // Prepare the command and data bytes:
+  // 0 0 0 0 D09 D08 D07 D06 D05 D04 D03 D02 D01 D00 X X
+  //                                                 \_/
+  //         \_____________________________________/ Don't cares => Do nothing
+  // \_____/  Data bits                                          => Voltage to set to (10 bits)
+  // Command bits                                                => Write Volatile DAC Register
+  //
+  // Refer to Section 6.0 to 6.1 (page 49-50) of datasheet for more detail
   uint8_t data[2];
   data[0] = (value >> 6) & 0x3F;  // Extract D09 to D04 and mask lower bits
   data[1] = (value << 2) & 0xFC;  // Extract D03 to D00, and shift left for X X bits
