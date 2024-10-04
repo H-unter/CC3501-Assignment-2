@@ -63,7 +63,7 @@ int main()
 
     dpg.init();
     while(true){
-        dpg.set_voltage(2.5);
+        dpg.set_voltage(5);
         sleep_ms(10);
     }
 

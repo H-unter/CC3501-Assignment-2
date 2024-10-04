@@ -8,7 +8,7 @@
 #define DAC_I2C_INSTANCE i2c0
 #define DAC_SDA_PIN 7
 #define DAC_SCL_PIN 6
-#define DAC_ADDR 0b11000000                // I2C address of the MCP4716A0 (10 bits)
+#define DAC_ADDR 0b11000000          // I2C address of the MCP4716A0 (10 bits)
 #define DAC_I2C_BAUD_RATE 100 * 1000 // Standard mode is 100kHz
 
 // Constructor
@@ -33,11 +33,21 @@ void DAC::init()
 
 void DAC::configure_default() {
   // Set configuration bits to default values
-  // Example: Setting VREF to VDD, Gain to 1, Power down to normal operation
-  uint8_t config_byte = 0b00000000; // Set bits according to the desired default configuration
-  
-  // Writing configuration to volatile memory (adjust this if needed)
-  dac_write_register(0x00, config_byte); // Assuming register 0x00 is for config
+  // 1 0 0 VREF1 VREF0 PD1 PD0 G
+  //                          \_/
+  //                   \_____/Gain      => 1x
+  //        \_________/ Power down bits => Normal operation
+  // \___/  Reference voltage           => Vdd (unbuffered)
+  // Command bits                       => Write Volatile Configuration Bits
+  //
+  // Refer to Table 4-4 (page 42) and Section 6.4 (page 53) of datasheet for more detail
+  // Set everything to zero
+  // => 0b10000000
+  uint8_t data[1];
+  data[0] = 0b10000000;
+
+  // Write the data to the DAC via I2C
+  i2c_write_blocking(DAC_I2C_INSTANCE, DAC_ADDR, data, 1, false);
 }
 
 void DAC::set_voltage(float voltage) {
