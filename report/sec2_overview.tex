@@ -1,4 +1,4 @@
-\section{Overview}
+\section{System Design Overview}
 
 The system was designed around the RP2040 microcontroller, acting as the central processing unit for interfacing with a variety of sensors and control devices. The design incorporated the SF-5M sap flow sensor, LT-1T leaf temperature sensor, and MT-603 load cell to measure various environmental parameters. Each of these sensors used different communication protocols, requiring careful consideration of power requirements, signal integrity, and communication compatibility.
 
@@ -20,6 +20,5 @@ Sensor Data Acquisition: Custom drivers were developed for each sensor, adhering
 Data Storage: The FatFs API was integrated to enable read/write operations on the SD card, using the SPI protocol. This allowed for structured data logging and easy retrieval of information.
 
 Control Interface: A software interface for controlling the dew point generator was implemented using the I2C protocol to communicate with the DAC. This interface allowed precise voltage adjustments to the generator, with preliminary tests confirming accurate output predictions based on command inputs.
-
 
 The careful selection of communication interfaces and voltage levels, along with robust software integration, allowed the system to operate seamlessly and efficiently, providing a reliable solution for monitoring and controlling environmental parameters.
