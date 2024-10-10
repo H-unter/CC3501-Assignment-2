@@ -22,3 +22,12 @@
 #define ALPHA 0.00f          // no smoothing because its kinda bad
 #define LOADCELL0_ADC_PIN 27 // ADC pin for load cell 0
 #define LOADCELL1_ADC_PIN 28 // ADC pin for load cell 1
+
+// DAC definitions
+// Define the I2C parameters
+#define DAC_I2C_INSTANCE i2c1
+#define DAC_ADDR 0x60            // MCP4716 I2C address (Refer to page 44 for addressing details)
+#define I2C_BAUD_RATE 100 * 1000 // 100kHz I2C (Standard mode, page 44)
+// Define SDA and SCL pins for I2C1
+#define SDA_PIN 6
+#define SCL_PIN 7

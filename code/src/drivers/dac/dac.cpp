@@ -1,14 +1,6 @@
 #include "dac.h"
 #include <stdio.h>
-
-// Define the I2C parameters
-#define DAC_I2C_INSTANCE i2c1
-#define DAC_ADDR 0x60            // MCP4716 I2C address (Refer to page 44 for addressing details)
-#define I2C_BAUD_RATE 100 * 1000 // 100kHz I2C (Standard mode, page 44)
-
-// Define SDA and SCL pins for I2C1
-#define SDA_PIN 7
-#define SCL_PIN 6
+#include "board.h"
 
 // DAC constructor
 DAC::DAC() : i2c_addr(DAC_ADDR) {}
