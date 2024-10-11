@@ -15,7 +15,7 @@ DAC Integration: The MCP4716 DAC was integrated to provide fine-grained control 
 
 
 \subsection{Software Design}
-Sensor Data Acquisition: Custom drivers were developed for each sensor, adhering to the SDI-12 protocol. Specific issues with the byte framing of the SDI-12 protocol were addressed by using the $uart_set_format()$ function to configure the communication format correctly, allowing the RP2040 to receive the inverted data without additional circuitry.
+Sensor Data Acquisition: Custom drivers were developed for each sensor, adhering to the SDI-12 protocol. Specific issues with the byte framing of the SDI-12 protocol were addressed by using the code{uart_set_format()} function to configure the communication format correctly, allowing the RP2040 to receive the inverted data without additional circuitry.
 
 Data Storage: The FatFs API was integrated to enable read/write operations on the SD card, using the SPI protocol. This allowed for structured data logging and easy retrieval of information.
 
