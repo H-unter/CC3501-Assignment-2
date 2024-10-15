@@ -30,32 +30,44 @@ int main()
     while (true)
     {
         int input_character = getchar_timeout_us(0);
-        if (input_character != PICO_ERROR_TIMEOUT)
+
+        // Continue if there is a timeout
+        if (input_character == PICO_ERROR_TIMEOUT)
         {
-            bool is_command_ready = terminal.handle_character_input((char)input_character);
-            if (is_command_ready)
-            {
-                Terminal::Command result = terminal.handle_command_input();
-                switch (result)
-                {
-                case Terminal::Command::Unrecognised:
-                    printf("> Unrecognised command\n");
-                    break;
-                case Terminal::Command::Help:
-                    printf("> Help command \n\r> useful stuff here\n");
-                    break;
-                case Terminal::Command::SetVoltage:
-                    printf("> Set voltage command\n");
-                    break;
-                case Terminal::Command::GetData:
-                    printf("> Get data command\n");
-                    break;
-                default:
-                    break;
-                }
-                terminal.reset_buffer();
-            }
+            continue;
         }
+
+        // Process the character input
+        bool is_command_ready = terminal.handle_character_input((char)input_character);
+
+        // If the command is not ready, continue
+        if (!is_command_ready)
+        {
+            continue;
+        }
+
+        // Handle the command
+        Terminal::Command result = terminal.handle_command_input();
+        switch (result)
+        {
+        case Terminal::Command::Unrecognised:
+            printf("> Unrecognised command\n");
+            break;
+        case Terminal::Command::Help:
+            printf("> Help command \n\r> useful stuff here\n");
+            break;
+        case Terminal::Command::SetVoltage:
+            printf("> Set voltage command\n");
+            break;
+        case Terminal::Command::GetData:
+            printf("> Get data command\n");
+            break;
+        default:
+            break;
+        }
+
+        // Reset the buffer after processing the command
+        terminal.reset_buffer();
     }
 
     return 0;
