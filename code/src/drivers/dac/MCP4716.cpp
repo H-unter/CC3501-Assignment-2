@@ -1,15 +1,15 @@
-#include "dac.h"
+#include "MCP4716.h"
 #include <stdio.h>
 #include "board.h"
 
 #define WRITE_ALL_MEMORY_COMMAND 0b01100000
 
 // DAC constructor
-DAC::DAC() {
+MCP4716::MCP4716() {
 }
 
 // Initialize the DAC
-void DAC::init()
+void MCP4716::init()
 {
   // Initialize I2C
   i2c_init(DAC_I2C_INSTANCE, DAC_I2C_BAUD_RATE); // Based on I2C communication details from page 44
@@ -19,7 +19,7 @@ void DAC::init()
 }
 
 // Set Vref bits
-uint8_t DAC::set_vref(vref vref_setting) {
+uint8_t MCP4716::set_vref(vref vref_setting) {
   switch (vref_setting) {
     case VDD:
       vref_value = 0b00000000;
@@ -35,7 +35,7 @@ uint8_t DAC::set_vref(vref vref_setting) {
 }
 
 // Set Power Down bits
-uint8_t DAC::set_power_down(power_down power_down_setting) {
+uint8_t MCP4716::set_power_down(power_down power_down_setting) {
   switch (power_down_setting) {
     case NORMAL:
       power_down_value = 0b00000000;
@@ -54,7 +54,7 @@ uint8_t DAC::set_power_down(power_down power_down_setting) {
 }
 
 // Set Gain
-uint8_t DAC::set_gain(gain gain_setting) {
+uint8_t MCP4716::set_gain(gain gain_setting) {
   switch (gain_setting) {
     case ONE:
       gain_value = 0b00000000;
@@ -67,7 +67,7 @@ uint8_t DAC::set_gain(gain gain_setting) {
 }
 
 // Write to DAC register
-bool DAC::write_all_memory(uint8_t settings, uint16_t dac_value)
+bool MCP4716::write_all_memory(uint8_t settings, uint16_t dac_value)
 {
   // Prepare the settings and data bytes:
   // C2 C1 C0 VREF1 VREF0 PD1 PD0 G D09 D08 D07 D06 D05 D04 D03 D02 D01 D00 X X X X X X
@@ -99,7 +99,7 @@ bool DAC::write_all_memory(uint8_t settings, uint16_t dac_value)
 }
 
 // Set the DAC output voltage (0V - 5V)
-void DAC::set_voltage(float voltage)
+void MCP4716::set_voltage(float voltage)
 {
   // Clamp the voltage to 0-5V range (based on MCP4716 voltage limits)
   if (voltage < 0.0f)

@@ -12,7 +12,7 @@
 #include "drivers/loadcell/loadcell.h"
 #include "drivers/sd_card/sd_card.h"
 #include "ff.h" // For 'FIL' definition
-#include "drivers/dac/dac.h"
+#include "drivers/dac/MCP4716.h"
 #include "hardware/i2c.h" // should be in the class only
 #include <string>
 #include <math.h>
@@ -51,7 +51,7 @@ int main() {
         // Initialize stdio and peripherals
     stdio_init_all();
 
-    DAC dpg;
+    MCP4716 dpg;
 
     dpg.init();
     while(true){

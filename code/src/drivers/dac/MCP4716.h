@@ -1,10 +1,10 @@
-#ifndef DAC_H
-#define DAC_H
+#ifndef MCP4716_H
+#define MCP4716_H
 
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 
-class DAC
+class MCP4716
 {
 public:
     /*!
@@ -37,7 +37,7 @@ public:
     /*!
      * \brief DAC Constructor
      */
-    DAC();
+    MCP4716();
 
     /*!
      * \brief Initialize the DAC and set up I2C communication
@@ -85,4 +85,4 @@ private:
     uint8_t gain_value;        /*!< Current gain setting */
 };
 
-#endif // DAC_H
+#endif // MCP4716_H
