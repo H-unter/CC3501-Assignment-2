@@ -5,15 +5,16 @@
 #define WRITE_ALL_MEMORY_COMMAND 0b01100000
 
 // DAC constructor
-DAC::DAC() : i2c_addr(DAC_ADDR) {}
+DAC::DAC() {
+}
 
 // Initialize the DAC
 void DAC::init()
 {
   // Initialize I2C
-  i2c_init(DAC_I2C_INSTANCE, I2C_BAUD_RATE); // Based on I2C communication details from page 44
-  gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
-  gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
+  i2c_init(DAC_I2C_INSTANCE, DAC_I2C_BAUD_RATE); // Based on I2C communication details from page 44
+  gpio_set_function(DAC_SDA_PIN, GPIO_FUNC_I2C);
+  gpio_set_function(DAC_SCL_PIN, GPIO_FUNC_I2C);
 
 }
 
@@ -88,7 +89,7 @@ bool DAC::write_all_memory(uint8_t settings, uint16_t dac_value)
   buff[1]=set_upper;
   buff[2]=set_lower;
 
-  int result = i2c_write_blocking(DAC_I2C_INSTANCE, i2c_addr, buff, 3, false);
+  int result = i2c_write_blocking(DAC_I2C_INSTANCE, DAC_I2C_ADDRESS, buff, 3, false);
   if (result < 0)
   {
     printf("[DAC] Failed to write to DAC.\n");
