@@ -24,13 +24,6 @@
 #include "pico/binary_info.h"
 #include "hardware/i2c.h"
 
-// I2C reserves some addresses for special purposes. We exclude these from the scan.
-// These are any addresses of the form 000 0xxx or 111 1xxx
-bool reserved_addr(uint8_t addr)
-{
-    return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
-}
-
 int main()
 {
     // Initialize stdio and peripherals
