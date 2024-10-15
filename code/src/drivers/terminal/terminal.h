@@ -11,14 +11,23 @@ class Terminal
 public:
     Terminal();
 
+    enum class Command
+    {
+        Unrecognised = 0,
+        Help,
+        SetVoltage,
+        GetData
+    };
+
     void clear_terminal();
     void reset_buffer();
     bool handle_character_input(char input_character);
-    uint16_t handle_command_input();
+    Command handle_command_input();
     char *get_terminal_buffer() { return terminal_buffer; }
 
 private:
-    char terminal_buffer[256];
+    static const int terminal_buffer_size = 256;
+    char terminal_buffer[terminal_buffer_size];
     int terminal_buffer_index;
 };
 

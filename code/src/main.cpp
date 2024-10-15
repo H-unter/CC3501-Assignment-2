@@ -26,8 +26,7 @@
 
 int main()
 {
-    Terminal terminal; // put a comment about having an internal buffer in the class
-
+    Terminal terminal; // The class has an internal buffer to handle input characters.
     while (true)
     {
         int input_character = getchar_timeout_us(0);
@@ -36,19 +35,19 @@ int main()
             bool is_command_ready = terminal.handle_character_input((char)input_character);
             if (is_command_ready)
             {
-                uint16_t result = terminal.handle_command_input();
+                Terminal::Command result = terminal.handle_command_input();
                 switch (result)
                 {
-                case 0: // unrecognised command
+                case Terminal::Command::Unrecognised:
                     printf("> Unrecognised command\n");
                     break;
-                case 1: // help
+                case Terminal::Command::Help:
                     printf("> Help command \n\r> useful stuff here\n");
                     break;
-                case 2: // set_voltage
+                case Terminal::Command::SetVoltage:
                     printf("> Set voltage command\n");
                     break;
-                case 3: // get_data
+                case Terminal::Command::GetData:
                     printf("> Get data command\n");
                     break;
                 default:
