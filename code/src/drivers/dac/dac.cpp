@@ -2,31 +2,93 @@
 #include <stdio.h>
 #include "board.h"
 
+#define WRITE_ALL_MEMORY_COMMAND 0b01100000
+
 // DAC constructor
 DAC::DAC() : i2c_addr(DAC_ADDR) {}
 
 // Initialize the DAC
 void DAC::init()
 {
-  printf("[DAC] Initializing DAC...\n");
-
   // Initialize I2C
   i2c_init(DAC_I2C_INSTANCE, I2C_BAUD_RATE); // Based on I2C communication details from page 44
   gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
   gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
 
-  // Ensure pull-ups are set correctly
-  printf("[DAC] I2C initialized (SDA: %d, SCL: %d).\n", SDA_PIN, SCL_PIN);
+}
+
+// Set Vref bits
+uint8_t DAC::set_vref(vref vref_setting) {
+  switch (vref_setting) {
+    case VDD:
+      vref_value = 0b00000000;
+      break;
+    case UNBUFFERED:
+      vref_value = 0b00010000;
+      break;
+    case BUFFERED:
+      vref_value = 0b00011000;
+      break;
+  }
+  return 0;
+}
+
+// Set Power Down bits
+uint8_t DAC::set_power_down(power_down power_down_setting) {
+  switch (power_down_setting) {
+    case NORMAL:
+      power_down_value = 0b00000000;
+      break;
+    case PD_01:
+      power_down_value = 0b00000010;
+      break;
+    case PD_10:
+      power_down_value = 0b00000100;
+      break;
+    case PD_11:
+      power_down_value = 0b00000110;
+      break;
+  }
+  return 0;
+}
+
+// Set Gain
+uint8_t DAC::set_gain(gain gain_setting) {
+  switch (gain_setting) {
+    case ONE:
+      gain_value = 0b00000000;
+      break;
+    case TWO:
+      gain_value = 0b00000001;
+      break;
+  }
+  return 0;
 }
 
 // Write to DAC register
-bool DAC::write_register(uint8_t reg, uint8_t data)
+bool DAC::write_all_memory(uint8_t settings, uint16_t dac_value)
 {
-  // Prepare a buffer of two bytes for the register and data
-  uint8_t buffer[2] = {reg, data}; // Based on I2C communication and data structure (Page 49)
+  // Prepare the settings and data bytes:
+  // C2 C1 C0 VREF1 VREF0 PD1 PD0 G D09 D08 D07 D06 D05 D04 D03 D02 D01 D00 X X X X X X
+  //                                                                        \_________/
+  //                                \_____________________________________/  Don't cares => dac_value               
+  //                             \_/                Data bits                            => dac_value
+  //                      \_____/ Gain                                                   => settings
+  //          \__________/ Power down bits                                               => settings
+  // \_______/ Reference voltage                                                         => settings
+  // Command bits                                                                        => settings
+  //
+  uint8_t com = (uint8_t) settings;
+  uint16_t set = dac_value << 6;
+  uint8_t set_upper = set >> 8;
+  uint8_t set_lower = set & 0xFF; // Masking to get the lower 8 bits
 
-  // Write the data to the DAC via I2C
-  int result = i2c_write_blocking(DAC_I2C_INSTANCE, i2c_addr, buffer, 2, false); // Page 49 mentions sending a command followed by the data
+  uint8_t buff[3];
+  buff[0]=com;
+  buff[1]=set_upper;
+  buff[2]=set_lower;
+
+  int result = i2c_write_blocking(DAC_I2C_INSTANCE, i2c_addr, buff, 3, false);
   if (result < 0)
   {
     printf("[DAC] Failed to write to DAC.\n");
@@ -38,63 +100,22 @@ bool DAC::write_register(uint8_t reg, uint8_t data)
 // Set the DAC output voltage (0V - 5V)
 void DAC::set_voltage(float voltage)
 {
+  // Clamp the voltage to 0-5V range (based on MCP4716 voltage limits)
+  if (voltage < 0.0f)
+    voltage = 0.0f;
+  if (voltage > 5.0f)
+    voltage = 5.0f;
 
-   uint8_t command;
-  command=96; //Command Bit
-    command=command+0; //Vdd
+  // Convert voltage to 10 bit binary
+  uint16_t dac_value = (uint16_t)((voltage / 5.0f) * 1023.0f);
 
+  // Define settings
+  uint8_t settings;
+  uint8_t command_value = WRITE_ALL_MEMORY_COMMAND;
+  settings = command_value + vref_value + power_down_value + gain_value;
 
-  command=command+00; //Power down Bits
-
-  uint8_t com=(uint8_t) command;
-  uint16_t Vout=512;
-  uint16_t set= Vout << 6;
-  uint8_t set_upper= (uint8_t) (set >> 8);
-  uint8_t set_l = (uint8_t) set;
-  uint8_t set_lower= (uint8_t) set_l;
-
-  uint8_t buff[3];
-
-  buff[0]=com;
-  buff[1]=set_upper;
-  buff[2]=set_lower;
-
-
-
-int result = i2c_write_blocking(DAC_I2C_INSTANCE, i2c_addr, buff, 3, false); // Page 49 mentions sending a command followed by the data
- 
-  // // Clamp the voltage to 0-5V range (based on MCP4716 voltage limits)
-  // if (voltage < 0.0f)
-  //   voltage = 0.0f;
-  // if (voltage > 5.0f)
-  //   voltage = 5.0f;
-
-  // // Convert voltage to a 10-bit value (0-1023) (based on the 10-bit DAC description on page 49)
-  // uint16_t dac_value = (uint16_t)((voltage / 5.0f) * 1023.0f);
-
-  // // To change the voltage of the MCP4716 DAC, you need to send two bytes:
-  // // 1. First byte (command + upper 6 bits of the 10-bit DAC value):
-  // //    - Bits D9-D4: Upper 6 bits of the 10-bit DAC value (D9 is MSB).
-  // //    - Bits PD1-PD0: Power-down control bits, set to 00 for normal operation.
-  // // 2. Second byte (lower 4 bits of the DAC value):
-  // //    - Bits D3-D0: Lower 4 bits of the 10-bit DAC value (D0 is LSB).
-  // //    - Remaining bits are padded with 0s.
-  // //
-  // // Datasheet reference: Page 49, Figure 6-1 (Data Structure for Writing to DAC Register).
-  // uint8_t upper_byte = (dac_value >> 4) & 0xFF; // Upper 8 bits (MSB, based on page 49)
-  // uint8_t lower_byte = (dac_value << 4) & 0xF0; // Lower 4 bits (LSB padded with zeros, page 49)
-
-  // // Write the two bytes to the DAC
-  // printf("[DAC] Setting DAC output voltage to %.2fV...\n", voltage);
-  // printf("[DAC] Scaled voltage to 10-bit DAC value: %d (out of 1023).\n", dac_value);
-
-  // // Call the write function to send the data
-  // if (!write_register(upper_byte, lower_byte))
-  // {
-  //   printf("[DAC] ERROR: Failed to write voltage data to DAC.\n");
-  // }
-  // else
-  // {
-  //   printf("[DAC] Voltage set successfully.\n");
-  // }
+  // Write to all memory
+  write_all_memory(settings, dac_value);
 }
+
+
