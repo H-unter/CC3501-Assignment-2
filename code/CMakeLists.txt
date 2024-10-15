@@ -38,6 +38,7 @@ if(CrossCompiling)
         src/drivers/sd_card/sd_card.cpp
         src/drivers/loadcell/loadcell.cpp
         src/drivers/dac/dac.cpp
+        src/drivers/terminal/terminal.cpp
         src/libs/hw_config.c   
     )
     target_include_directories(labs
@@ -90,6 +91,7 @@ else()
         src/drivers/sdi12/sdi12.cpp
         src/drivers/loadcell/loadcell.cpp
         src/drivers/dac/dac.cpp
+        src/drivers/terminal/terminal.cpp
         src/libs/hw_config.c # configures the SD card hardware
         tests/mocks/pico/stdlib.cpp
         tests/mocks/pico/time.cpp
