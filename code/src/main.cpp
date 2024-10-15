@@ -24,29 +24,35 @@
 #include "pico/binary_info.h"
 #include "hardware/i2c.h"
 
+// Function to be called by the timer
+bool sample_data(struct repeating_timer *t)
+{
+    // put data polling here (hardcode which sdi-12 sensors we have)
+    printf("hello\n");
+    return true;
+}
+
 int main()
 {
+    // Initialize the timer to call sample_data every 1000ms
+    struct repeating_timer timer;
+    int32_t polling_rate_ms = 1000; // adjustable in code
+    add_repeating_timer_ms(polling_rate_ms, sample_data, NULL, &timer);
+
     Terminal terminal; // The class has an internal buffer to handle input characters.
     while (true)
     {
         int input_character = getchar_timeout_us(0);
-
-        // Continue if there is a timeout
         if (input_character == PICO_ERROR_TIMEOUT)
         {
-            continue;
+            continue; // go to the start of the loop
         }
-
-        // Process the character input
         bool is_command_ready = terminal.handle_character_input((char)input_character);
-
-        // If the command is not ready, continue
         if (!is_command_ready)
         {
-            continue;
+            continue; // go to the start of the loop
         }
 
-        // Handle the command
         Terminal::Command result = terminal.handle_command_input();
         switch (result)
         {
@@ -58,9 +64,11 @@ int main()
             break;
         case Terminal::Command::SetVoltage:
             printf("> Set voltage command\n");
+            // dac.set_voltage(3.2f);
             break;
         case Terminal::Command::GetData:
             printf("> Get data command\n");
+            // call the sample_data function which is called on the sd card loop
             break;
         default:
             break;
