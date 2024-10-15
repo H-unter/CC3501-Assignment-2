@@ -28,7 +28,15 @@
 bool sample_data(struct repeating_timer *t)
 {
     // put data polling here (hardcode which sdi-12 sensors we have)
-    printf("hello\n");
+    // maybe this updates some kind of global data structure, and whenever the user in the terminal asks for the data, a new poll is not rewquired, rather, the most recent sample of data is given to the user
+
+    // GENERAL STRUCTURE
+    // sample load cell
+    // sample dac (whether we get the input from the dpg or just return the theoretical value we believe we sent)
+    // sample the sdi-12 sensors TODO: figure out which commands we have to send in order to do this
+
+    // save this all to the sd card (appen to the end of the .csv file)
+    printf("sampling data...\n");
     return true;
 }
 
@@ -36,8 +44,16 @@ int main()
 {
     // Initialize the timer to call sample_data every 1000ms
     struct repeating_timer timer;
-    int32_t polling_rate_ms = 1000; // adjustable in code
+    int32_t polling_rate_ms = 5000; // adjustable in code
     add_repeating_timer_ms(polling_rate_ms, sample_data, NULL, &timer);
+
+    // initialize sd card
+
+    // initalize load cell
+
+    // initialize dac
+
+    // initialize sdi-12 bus (where we communicate with the 2 sensors)
 
     Terminal terminal; // The class has an internal buffer to handle input characters.
     while (true)
@@ -60,7 +76,7 @@ int main()
             printf("> Unrecognised command\n");
             break;
         case Terminal::Command::Help:
-            printf("> Help command \n\r> useful stuff here\n");
+            printf("> Help command \n> set_voltage - sets voltage value from 0-5V\n> get_data - gets the data from the sensors\n");
             break;
         case Terminal::Command::SetVoltage:
             printf("> Set voltage command\n");
