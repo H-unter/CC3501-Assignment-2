@@ -85,10 +85,11 @@ bool MCP4716::write_all_memory(uint8_t settings, uint16_t dac_value)
   // \_______/ Reference voltage                                                         => settings
   // Command bits                                                                        => settings
   //
-  uint8_t com = (uint8_t)settings;
+
+  uint8_t com = settings;         
   uint16_t set = dac_value << 6;
-  uint8_t set_upper = (uint8_t)(set >> 8);
-  uint8_t set_lower = (uint8_t)set & 0xFF; // Masking to get the lower 8 bits
+  uint8_t set_upper = (set >> 8); 
+  uint8_t set_lower = set & 0xFF; 
 
   uint8_t buff[3];
   buff[0] = com;

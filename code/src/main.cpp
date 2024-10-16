@@ -35,5 +35,29 @@ int main()
     dac.set_vref(MCP4716::VDD);
     dac.set_gain(MCP4716::ONE);
     dac.set_power_down(MCP4716::NORMAL);
-    dac.set_voltage(3.2f);
+
+    float voltage = 0.0f;
+    const float step = 0.5f;
+    bool increasing = true;
+
+    while (true) {
+        // Set the voltage
+        dac.set_voltage(voltage);
+
+        // Adjust voltage based on direction
+        if (increasing) {
+            voltage += step;
+            if (voltage >= 5.0f) {
+                voltage = 5.0f;
+                increasing = false;  // Start decreasing
+            }
+        } else {
+            voltage -= step;
+            if (voltage <= 0.0f) {
+                voltage = 0.0f;
+                increasing = true;   // Start increasing
+            }
+        }
+        sleep_ms(1000);
+}
 }
