@@ -12,17 +12,17 @@
 #include "drivers/loadcell/loadcell.h"
 #include "drivers/sd_card/sd_card.h"
 #include "ff.h" // For 'FIL' definition
-#include "drivers/dac/dac.h"
 #include "drivers/terminal/terminal.h"
+#include "drivers/dac/MCP4716.h"
+
 #include "hardware/i2c.h" // should be in the class only
 #include <string>
 #include <math.h>
 
 #define ALPHA 0.01f // Define the smoothing factor for the load cell
-#include <stdio.h>
-#include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "hardware/i2c.h"
+
 
 // Function to be called by the timer
 bool sample_data(struct repeating_timer *t)
@@ -96,4 +96,3 @@ int main()
     }
 
     return 0;
-}
