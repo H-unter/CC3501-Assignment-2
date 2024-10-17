@@ -42,55 +42,56 @@ bool sample_data(struct repeating_timer *t)
 
 int main()
 {
-    // Initialize the timer to call sample_data every 1000ms
+    // init sampling timer
     struct repeating_timer timer;
-    int32_t polling_rate_ms = 5000; // adjustable in code
+    int32_t polling_rate_ms = 5000;
     add_repeating_timer_ms(polling_rate_ms, sample_data, NULL, &timer);
 
-    // initialize sd card
+    // init terminal
+    Terminal terminal;
 
-    // initalize load cell
+    // init dac
+    // MCP4716 dac;
+    // dac.init();
+    // dac.set_vref(MCP4716::VDD);
+    // dac.set_gain(MCP4716::ONE);
+    // dac.set_power_down(MCP4716::NORMAL);
 
-    // initialize dac
-
-    // initialize sdi-12 bus (where we communicate with the 2 sensors)
-
-    Terminal terminal; // The class has an internal buffer to handle input characters.
     while (true)
     {
         int input_character = getchar_timeout_us(0);
         if (input_character == PICO_ERROR_TIMEOUT)
         {
-            continue; // go to the start of the loop
+            continue;
         }
+
         bool is_command_ready = terminal.handle_character_input((char)input_character);
         if (!is_command_ready)
         {
-            continue; // go to the start of the loop
+            continue;
         }
 
+        // Handle the input and get the command + argument
         Terminal::Command result = terminal.handle_command_input();
-        switch (result)
+        switch (result.command_name)
         {
-        case Terminal::Command::Unrecognised:
-            printf("> Unrecognised command\n");
+        case Terminal::Command::unrecognised:
+            printf("> Unrecognised/invalid command\n");
             break;
-        case Terminal::Command::Help:
+        case Terminal::Command::help:
             printf("> Help command \n> set_voltage - sets voltage value from 0-5V\n> get_data - gets the data from the sensors\n");
             break;
-        case Terminal::Command::SetVoltage:
-            printf("> Set voltage command\n");
-            // dac.set_voltage(3.2f);
+        case Terminal::Command::set_voltage:
+            printf("> Set voltage command to %.2fV\n", result.argument);
+            // dac.set_voltage(result.argument); // Use the voltage argument
             break;
-        case Terminal::Command::GetData:
+        case Terminal::Command::get_data:
             printf("> Get data command\n");
-            // call the sample_data function which is called on the sd card loop
             break;
         default:
             break;
         }
 
-        // Reset the buffer after processing the command
         terminal.reset_buffer();
     }
 
