@@ -31,7 +31,6 @@ public:
      */
     float sample_mass();
 
-private:
     /*!
      * \brief Read the ADC value and convert it to a voltage
      * This method reads the raw ADC value and converts it to a voltage using the specified conversion factor.
@@ -39,6 +38,7 @@ private:
      */
     float read_voltage();
 
+private:
     /*!
      * \brief Update the smoothed voltage using the exponential moving average
      * \param newest_sample The most recent voltage sample to include in the smoothing calculation

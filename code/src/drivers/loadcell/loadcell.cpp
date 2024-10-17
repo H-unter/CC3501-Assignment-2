@@ -17,7 +17,7 @@ void LoadCell::init(int adc_pin, float alpha)
 
     adc_init();
     adc_gpio_init(adc_pin);
-    adc_select_input(adc_pin - 26); // eg adc_pin 26 is channel 0
+    adc_select_input(adc_pin - 26); // eg adc_pin 26 is adc channel 0
     smoothed_voltage = read_voltage();
 }
 

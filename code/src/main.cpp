@@ -25,15 +25,29 @@
 #include "drivers/terminal/terminal.h"
 #include "drivers/dac/MCP4716.h" // dac
 
-// Function to be called by the timer
+struct data_sample
+{
+    float loadcell_voltage;
+    float loadcell_weight;
+    float dac_voltage;
+
+    data_sample() : loadcell_voltage(0.0f), loadcell_weight(0.0f), dac_voltage(0.0f) {}
+};
+
+data_sample most_recent_data; // globally accessible most recent sample variable
+
+// Function to be called by the timer, updates the most_recent_data global variable
+struct sample_data_args
+{
+    LoadCell *loadcell;
+    MCP4716 *dac;
+};
+
 bool sample_data(struct repeating_timer *t)
 {
-    // put data polling here (hardcode which sdi-12 sensors we have)
-    // maybe this updates some kind of global data structure, and whenever the user in the terminal asks for the data, a new poll is not rewquired, rather, the most recent sample of data is given to the user
-
-    // GENERAL STRUCTURE
-    // sample load cell
-    // sample dac (whether we get the input from the dpg or just return the theoretical value we believe we sent)
+    struct sample_data_args *components = (struct sample_data_args *)t->user_data;
+    most_recent_data.loadcell_voltage = components->loadcell->read_voltage();
+    most_recent_data.loadcell_weight = components->loadcell->sample_mass();
     // sample the sdi-12 sensors TODO: figure out which commands we have to send in order to do this
 
     // save this all to the sd card (appen to the end of the .csv file)
@@ -43,10 +57,9 @@ bool sample_data(struct repeating_timer *t)
 
 int main()
 {
-    // init sampling timer
-    struct repeating_timer timer;
-    int32_t polling_rate_ms = 5000;
-    add_repeating_timer_ms(polling_rate_ms, sample_data, NULL, &timer);
+    // init load cell
+    LoadCell loadcell;
+    loadcell.init(LOADCELL0_ADC_PIN, ALPHA);
 
     // init terminal
     Terminal terminal;
@@ -57,6 +70,12 @@ int main()
     dac.set_vref(MCP4716::VDD);
     dac.set_gain(MCP4716::ONE);
     dac.set_power_down(MCP4716::NORMAL);
+
+    // init sampling timer
+    struct repeating_timer timer;
+    int32_t polling_rate_ms = 5000; // 5 seconds
+    struct sample_data_args args = {&loadcell, &dac};
+    add_repeating_timer_ms(polling_rate_ms, sample_data, (void *)&args, &timer);
 
     while (true)
     {
@@ -87,10 +106,14 @@ int main()
             float input_voltage = result.argument;
             printf("> Setting voltage to %.2fV\n", input_voltage);
             dac.set_voltage(input_voltage);
+            most_recent_data.dac_voltage = input_voltage;
             break;
         }
         case Terminal::Command::get_data:
             printf("> Get data command\n");
+            printf("Plant Mass: %f kg\n", most_recent_data.loadcell_weight);
+            printf("Loadcell Voltage: %f V\n", most_recent_data.loadcell_voltage);
+            printf("DAC Voltage: %f V\n", most_recent_data.dac_voltage);
             break;
         default:
             break;

@@ -46,6 +46,7 @@ void log(LogLevel level, const char *msg)
     printf("[%u.%03u %s]: %s\n", time_sec, time_decimal, levelStr, msg);
 }
 
+// sd card error codes
 const char *FRESULT_str(FRESULT fr)
 {
     switch (fr)
