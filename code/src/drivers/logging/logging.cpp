@@ -1,8 +1,4 @@
 // Logging system, using the style that state is global in the C file.
-
-#include <stdio.h>
-#include "pico/stdlib.h"
-#include "pico/time.h"
 #include "logging.h"
 
 // --- Device driver internal state:
@@ -93,5 +89,30 @@ const char *FRESULT_str(FRESULT fr)
         return "Invalid Parameter";
     default:
         return "Unknown Error";
+    }
+}
+
+// Datalogging helper functions
+
+// Function to write the CSV header
+void write_csv_header(SDCard &sd_card, FIL &file)
+{
+    char header_buffer[128]; // Increased buffer size to accommodate more columns
+    // Updated header to reflect all data columns
+    snprintf(header_buffer, sizeof(header_buffer), "elapsed_time_ms,loadcell_voltage,loadcell_weight,dac_voltage\n");
+    if (!sd_card.write_file_sync(file, header_buffer))
+    {
+        printf("Failed to write header\n");
+    }
+}
+
+void write_csv_row(SDCard &sd_card, FIL &file, data_sample &data)
+{
+    char row_buffer[128];
+    snprintf(row_buffer, sizeof(row_buffer), "%llu,%.2f,%.2f,%.2f\n",
+             data.elapsed_time_ms, data.loadcell_voltage, data.loadcell_weight, data.dac_voltage);
+    if (!sd_card.write_file_sync(file, row_buffer))
+    {
+        printf("Failed to write row\n");
     }
 }

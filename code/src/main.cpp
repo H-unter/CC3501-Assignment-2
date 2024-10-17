@@ -25,17 +25,11 @@
 #include "drivers/terminal/terminal.h"
 #include "drivers/dac/MCP4716.h" // dac
 
-struct data_sample
-{
-    float loadcell_voltage;
-    float loadcell_weight;
-    float dac_voltage;
-
-    data_sample() : loadcell_voltage(0.0f), loadcell_weight(0.0f), dac_voltage(0.0f) {}
-};
-
-data_sample most_recent_data; // globally accessible most recent sample variable
-
+static data_sample most_recent_data; // globally accessible most recent sample variable
+static uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
+static SDCard sd_card; // lol global
+static FIL file;       // lol also global
+static int is_data_logged = true;
 // Function to be called by the timer, updates the most_recent_data global variable
 struct sample_data_args
 {
@@ -51,10 +45,12 @@ bool sample_data(struct repeating_timer *t)
     // sample the sdi-12 sensors TODO: figure out which commands we have to send in order to do this
 
     // save this all to the sd card (appen to the end of the .csv file)
-    // printf("sampling data...\n");
+    uint64_t current_time_ms = to_ms_since_boot(get_absolute_time());
+    most_recent_data.elapsed_time_ms = current_time_ms - start_time_ms;
+    is_data_logged = false;
+    printf("sampling\n");
     return true;
 }
-
 int main()
 {
     // init load cell
@@ -71,14 +67,34 @@ int main()
     dac.set_gain(MCP4716::ONE);
     dac.set_power_down(MCP4716::NORMAL);
 
+    // init sd card
+    if (!sd_card.mount())
+    {
+        printf("Failed to mount SD card.\n");
+        return 0;
+    }
+
+    if (!sd_card.open_file("loadcell_log.csv", file))
+    {
+        printf("Failed to open log file.\n");
+        return 0;
+    }
+    write_csv_header(sd_card, file);
+
     // init sampling timer
     struct repeating_timer timer;
-    int32_t polling_rate_ms = 5000; // 5 seconds
+    int32_t sampling_rate_ms = 100;
     struct sample_data_args args = {&loadcell, &dac};
-    add_repeating_timer_ms(polling_rate_ms, sample_data, (void *)&args, &timer);
+    add_repeating_timer_ms(sampling_rate_ms, sample_data, (void *)&args, &timer);
 
     while (true)
     {
+        if (is_data_logged == false)
+        {
+            write_csv_row(sd_card, file, most_recent_data);
+            printf("saved row meow\n");
+            is_data_logged = true;
+        }
         int input_character = getchar_timeout_us(0);
         if (input_character == PICO_ERROR_TIMEOUT)
         {
@@ -115,6 +131,12 @@ int main()
             printf("Loadcell Voltage: %f V\n", most_recent_data.loadcell_voltage);
             printf("DAC Voltage: %f V\n", most_recent_data.dac_voltage);
             break;
+        case Terminal::Command::shutdown:
+            printf("> Shutting down...\n");
+            cancel_repeating_timer(&timer);
+            sd_card.close_file(file);
+            sd_card.unmount();
+            return 0;
         default:
             break;
         }

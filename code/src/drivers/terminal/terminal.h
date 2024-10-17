@@ -20,7 +20,8 @@ public:
             unrecognised = 0,
             help,
             set_voltage,
-            get_data
+            get_data,
+            shutdown
         } command_name;
 
         float argument; // To store the floating-point number (e.g., voltage)

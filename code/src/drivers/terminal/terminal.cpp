@@ -72,6 +72,10 @@ Terminal::Command::command_name_t Terminal::parse_command(const char *input)
     {
         return Command::get_data;
     }
+    else if (strcmp(command_buffer, "shutdown") == 0)
+    {
+        return Command::shutdown;
+    }
     else
     {
         return Command::unrecognised;
