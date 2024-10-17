@@ -1,10 +1,13 @@
-// hardware related definitions
+// terminal parameter definitions
+#define TERMINAL_UART_INSTANCE uart0 // UART instance for terminal communication
+#define DEBUG_UART_RX_PIN 1
+#define DEBUG_UART_TX_PIN 0
+
+// sdi-12 parameter definitions
 #define SDI12_UART_INSTANCE uart1 //
 #define SDI12_UART_TX_PIN 8
 #define SDI12_UART_RX_PIN 9
 #define ENABLE_DRIVE_PIN 15 // for SDI12 data line drive enable TODO: rename for cleanliness
-
-// sdi-12 parameter definitions
 #define SDI12_BAUD_RATE 1200
 #define SDI12_MAX_RESPONSE_TIME_MS 15             // max sensor response time for most commands (pg.41 of datasheet)
 #define SDI12_MAX_TRANSMIT_TIME_MS 380            // max sensor transmitting time for most commands (pg.41 of datasheet)

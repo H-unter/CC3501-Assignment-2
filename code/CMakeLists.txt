@@ -37,7 +37,10 @@ if(CrossCompiling)
         src/drivers/sdi12/sdi12.cpp
         src/drivers/sd_card/sd_card.cpp
         src/drivers/loadcell/loadcell.cpp
+
+        src/drivers/terminal/terminal.cpp
         src/drivers/dac/MCP4716.cpp
+
         src/libs/hw_config.c   
     )
     target_include_directories(labs
@@ -50,7 +53,7 @@ if(CrossCompiling)
 
     # select UART for standard IO
     pico_enable_stdio_uart(labs 1)
-    pico_enable_stdio_usb(labs 0)
+    pico_enable_stdio_usb(labs 0) # change this flag when deploying this code without a debugger!
 
     # compile the PIO file
     pico_generate_pio_header(labs ${CMAKE_CURRENT_LIST_DIR}/src/drivers/WS2812/WS2812.pio)
@@ -89,6 +92,7 @@ else()
         src/drivers/logging/logging.cpp
         src/drivers/sdi12/sdi12.cpp
         src/drivers/loadcell/loadcell.cpp
+        src/drivers/terminal/terminal.cpp
         src/drivers/dac/MCP4716.cpp
         src/libs/hw_config.c # configures the SD card hardware
         tests/mocks/pico/stdlib.cpp
