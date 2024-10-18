@@ -129,24 +129,27 @@ int main()
         case Terminal::Command::sdi12_send:
         {
             std::string input_command = result.string_argument;
-            printf("> Sending SDI-12 command: %s\n", input_command.c_str());
             sdi12.set_data_line_driven(true);
             sdi12.send_break();
-            sdi12.send_command(input_command.c_str(), true);
-            absolute_time_t sdi12_start_time = get_absolute_time();
-            while (!uart_is_readable(SDI12_UART_INSTANCE) && !sdi12.is_timed_out(sdi12_start_time))
-            {
-                tight_loop_contents();
-            }
+            sdi12.send_command(input_command, true);
+            printf("> Sending SDI-12 command: %s\n", input_command.c_str());
+            sleep_ms(SDI12_MAX_RESPONSE_TIME_MS + 5); // wiggle room for sensors out of spec
+
+            uint8_t character;
             int sdi12_buffer_size = 128; // Internal buffer size for storing received characters
-            int buffer_index = 0;        // Reset index for new data reception
-            uint8_t ch;
             char message_buffer[sdi12_buffer_size] = {0};
+            int buffer_index = 0; // Reset index for new data reception
+
             while (uart_is_readable(SDI12_UART_INSTANCE) && buffer_index < sdi12_buffer_size - 1)
             {
-                ch = uart_getc(SDI12_UART_INSTANCE); // Read one character from the UART receive buffer
-                message_buffer[buffer_index++] = ch; // Store the character in the internal buffer
-                sleep_ms(10);                        // enough of a delay to allow the next character to come through
+                character = uart_getc(SDI12_UART_INSTANCE); // Read one character from the UART receive buffer
+                bool is_unimportant_character = character == '\r' || character == '\n' || character == '\0';
+                // TODO: maybe use the fact that \r\n is at the end of every message to perform some kind of sanity check on the integrity of the message
+                if (!is_unimportant_character)
+                {
+                    message_buffer[buffer_index++] = character; // Store the character in the internal buffer
+                    sleep_ms(15);                               // enough of a delay to allow the next character to come through
+                }
             }
             message_buffer[buffer_index] = '\0';
             printf("> Received %d characters: %s\n", buffer_index, message_buffer);
