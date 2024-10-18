@@ -1,8 +1,8 @@
 // hardware related definitions
 #define SDI12_UART_INSTANCE uart1 //
-#define SDI12_UART_TX_PIN 4
-#define SDI12_UART_RX_PIN 5
-#define ENABLE_DRIVE_PIN 3
+#define SDI12_UART_TX_PIN 8
+#define SDI12_UART_RX_PIN 9
+#define ENABLE_DRIVE_PIN 15
 
 // sdi-12 parameter definitions
 #define SDI12_BAUD_RATE 1200
