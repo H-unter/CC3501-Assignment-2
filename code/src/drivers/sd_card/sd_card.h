@@ -5,6 +5,12 @@
 #include <vector>
 #include "ff.h" // FatFs library
 
+/*!
+ * \brief SDCard class for handling file operations on an SD card using FatFs.
+ *
+ * This class provides a simple interface to mount/unmount the SD card, open/close files,
+ * and write data, using the FatFs file system.
+ */
 class SDCard
 {
 public:

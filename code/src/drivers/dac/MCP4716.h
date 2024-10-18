@@ -4,13 +4,25 @@
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 
+/*!
+ * \brief MCP4716 class for controlling a DAC via I2C communication.
+ *
+ * This class provides an interface to configure and control the MCP4716 DAC, including:
+ * - Setting the output voltage.
+ * - Configuring reference voltage (Vref), power modes, and gain.
+ * - Writing configuration settings to DAC memory.
+ *
+ * The class offers methods to easily adjust key parameters such as `set_voltage`, `set_vref`, `set_power_down`,
+ * and `set_gain`, facilitating efficient control over the DAC's operation.
+ */
 class MCP4716
 {
 public:
     /*!
      * \brief Enum representing the reference voltage options for the DAC
      */
-    enum vref {
+    enum vref
+    {
         VDD,        /*!< Use VDD as reference */
         UNBUFFERED, /*!< Use Vref pin (unbuffered) */
         BUFFERED    /*!< Use Vref pin (buffered) */
@@ -19,7 +31,8 @@ public:
     /*!
      * \brief Enum representing power down modes for the DAC
      */
-    enum power_down {
+    enum power_down
+    {
         NORMAL, /*!< Not Powered Down (Normal operation) */
         PD_01,  /*!< Powered Down – Vout is loaded with 1 kΩ resistor to ground */
         PD_10,  /*!< Powered Down – Vout is loaded with 100 kΩ resistor to ground */
@@ -29,7 +42,8 @@ public:
     /*!
      * \brief Enum representing gain options for the DAC
      */
-    enum gain {
+    enum gain
+    {
         ONE, /*!< Gain of 1x */
         TWO  /*!< Gain of 2x */
     };
@@ -41,12 +55,13 @@ public:
 
     /*!
      * \brief Initialize the DAC and set up I2C communication
+     * \param none uses board.h values for initialisation
      */
     void init();
 
     /*!
-     * \brief Set the output voltage of the DAC
-     * \param voltage The desired output voltage
+     * \brief Set the output voltage of the DAC and clamps the voltage to 0-5V range (based on MCP4716 voltage limits)
+     * \param voltage The desired output voltage;
      */
     void set_voltage(float voltage);
 
@@ -80,9 +95,9 @@ public:
     uint8_t set_gain(gain gain_setting);
 
 private:
-    uint8_t vref_value;        /*!< Current Vref setting */
-    uint8_t power_down_value;  /*!< Current power down setting */
-    uint8_t gain_value;        /*!< Current gain setting */
+    uint8_t vref_value;       /*!< Current Vref setting */
+    uint8_t power_down_value; /*!< Current power down setting */
+    uint8_t gain_value;       /*!< Current gain setting */
 };
 
 #endif // MCP4716_H

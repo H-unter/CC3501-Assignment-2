@@ -27,9 +27,9 @@
 
 static data_sample most_recent_data; // globally accessible most recent sample variable
 static uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
-static SDCard sd_card; // lol global
-static FIL file;       // lol also global
-static int is_data_logged = true;
+static SDCard sd_card;            // lol global
+static FIL file;                  // lol also global
+static int is_data_logged = true; // flag checking if the most recently sampled data has been saved to the sd card
 // Function to be called by the timer, updates the most_recent_data global variable
 struct sample_data_args
 {
@@ -48,7 +48,6 @@ bool sample_data(struct repeating_timer *t)
     uint64_t current_time_ms = to_ms_since_boot(get_absolute_time());
     most_recent_data.elapsed_time_ms = current_time_ms - start_time_ms;
     is_data_logged = false;
-    printf("sampling\n");
     return true;
 }
 int main()
@@ -66,17 +65,12 @@ int main()
     dac.set_vref(MCP4716::VDD);
     dac.set_gain(MCP4716::ONE);
     dac.set_power_down(MCP4716::NORMAL);
+    dac.set_voltage(most_recent_data.dac_voltage);
 
     // init sd card
-    if (!sd_card.mount())
+    if (!sd_card.mount() || !sd_card.open_file("loadcell_log.csv", file))
     {
-        printf("Failed to mount SD card.\n");
-        return 0;
-    }
-
-    if (!sd_card.open_file("loadcell_log.csv", file))
-    {
-        printf("Failed to open log file.\n");
+        printf("Failed to initialize SD card.\n");
         return 0;
     }
     write_csv_header(sd_card, file);
@@ -84,17 +78,17 @@ int main()
     // init sampling timer
     struct repeating_timer timer;
     int32_t sampling_rate_ms = 100;
-    struct sample_data_args args = {&loadcell, &dac};
-    add_repeating_timer_ms(sampling_rate_ms, sample_data, (void *)&args, &timer);
+    struct sample_data_args sample_data_arguments = {&loadcell, &dac};
+    add_repeating_timer_ms(sampling_rate_ms, sample_data, (void *)&sample_data_arguments, &timer);
 
     while (true)
     {
         if (is_data_logged == false)
         {
             write_csv_row(sd_card, file, most_recent_data);
-            printf("saved row meow\n");
             is_data_logged = true;
         }
+
         int input_character = getchar_timeout_us(0);
         if (input_character == PICO_ERROR_TIMEOUT)
         {
@@ -106,6 +100,8 @@ int main()
         {
             continue;
         }
+
+        // at this point in the program a command is ready to be processed and handled
 
         // Handle the input and get the command + argument
         Terminal::Command result = terminal.handle_command_input();

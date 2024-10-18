@@ -7,12 +7,34 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
 
+/*!
+ * \brief Terminal class for handling user input and executing commands.
+ *
+ * The Terminal class processes character input from the user, interprets commands,
+ * and manages a buffer to handle multi-character commands. It supports various commands such as
+ * `set_voltage`, `get_data`, and `shutdown`, and allows for an optional floating-point argument
+ * to be passed along with certain commands.
+ *
+ * This class provides methods for:
+ * - Handling input character by character.
+ * - Parsing and executing user commands.
+ * - Resetting and managing the internal command buffer.
+ */
 class Terminal
 {
 public:
     Terminal();
 
-    // Struct to store both the command and its argument
+    /*!
+     * \brief Represents a command received from the terminal input.
+     *
+     * This structure is used to handle commands input by the user through the terminal.
+     * It consists of a command type and an optional floating-point argument provided by the user,
+     * which is used with specific commands, such as `set_voltage`.
+     *
+     * \param command_name The type of command issued by the user.
+     * \param argument A floating-point value that accompanies certain commands (e.g., `set_voltage`). It has a default value of 0, for commands that do not require an argument.
+     */
     struct Command
     {
         enum command_name_t
