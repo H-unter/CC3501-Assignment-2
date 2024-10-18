@@ -68,6 +68,10 @@ Terminal::Command::command_name_t Terminal::parse_command(const char *input)
     {
         return Command::set_voltage; // We handle arguments separately
     }
+    else if (strcmp(command_buffer, "sdi12_send") == 0)
+    {
+        return Command::sdi12_send;
+    }
     else if (strcmp(command_buffer, "get_data") == 0)
     {
         return Command::get_data;
@@ -97,27 +101,46 @@ float Terminal::parse_float(const char *input)
 Terminal::Command Terminal::handle_command_input()
 {
     Command cmd;
-    cmd.command_name = parse_command(terminal_buffer);
+    cmd.command_name = parse_command(terminal_buffer); // Parse the command from the buffer
 
+    // Handle commands that require numeric input (e.g., set_voltage)
     if (cmd.command_name == Command::set_voltage)
     {
-        // For set_voltage, extract the argument (voltage)
-        float voltage = parse_float(terminal_buffer);
+        // Extract the numeric argument (voltage)
+        float voltage = parse_float(terminal_buffer); // Assumes voltage is a float after the command
         if (voltage != -1.0f)
         {
-            cmd.argument = voltage;
+            cmd.numeric_argument = voltage; // Set the numeric argument
             printf("Setting voltage to: %.2fV\r\n", voltage);
         }
         else
         {
-            cmd.argument = 0.0f;
+            cmd.numeric_argument = 0.0f; // Default to 0.0 if no valid voltage is provided
             printf("Error: No valid voltage provided.\r\n");
+        }
+    }
+    // Handle commands that require a string input (e.g., sdi12_send)
+    else if (cmd.command_name == Command::sdi12_send)
+    {
+        // Extract the string argument (SDI-12 command)
+        char *sdi12_command = strstr(terminal_buffer, " "); // Find the space after the command
+        if (sdi12_command != nullptr)
+        {
+            cmd.string_argument = std::string(sdi12_command + 1); // Extract and set the string argument
+            // printf("Sending SDI-12 command: %s\r\n", cmd.string_argument.c_str());
+        }
+        else
+        {
+            cmd.string_argument = ""; // Default to an empty string if no valid SDI-12 command is provided
+            printf("Error: No valid SDI-12 command provided.\r\n");
         }
     }
     else
     {
-        cmd.argument = 0.0f; // Default argument for commands without arguments
+        // For commands that don't use arguments, initialize both arguments to default values
+        cmd.numeric_argument = 0.0f;
+        cmd.string_argument = "";
     }
 
-    return cmd;
+    return cmd; // Return the command with its parsed arguments
 }

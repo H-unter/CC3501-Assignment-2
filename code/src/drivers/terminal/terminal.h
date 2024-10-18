@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <cstring>
 #include <cstdlib> // For strtof
+#include <string>
 #include "pico/stdlib.h"
 #include "pico/time.h"
 
@@ -11,14 +12,18 @@
  * \brief Terminal class for handling user input and executing commands.
  *
  * The Terminal class processes character input from the user, interprets commands,
- * and manages a buffer to handle multi-character commands. It supports various commands such as
- * `set_voltage`, `get_data`, and `shutdown`, and allows for an optional floating-point argument
- * to be passed along with certain commands.
+ * and manages a buffer for multi-character commands. A command in this context is represented
+ * as a data structure (a struct) called `Command`, which encapsulates the command type
+ * and an optional floating-point argument.
+ *
+ * The `Command` struct contains:
+ * - The type of command issued by the user (e.g., `help`, `set_voltage`, `get_data`, `shutdown`).
+ * - An optional argument for commands that require additional information, such as a voltage value for `set_voltage`.
  *
  * This class provides methods for:
  * - Handling input character by character.
- * - Parsing and executing user commands.
- * - Resetting and managing the internal command buffer.
+ * - Parsing and executing user commands by interpreting the `Command` structure.
+ * - Resetting and managing the internal command buffer used for building commands from user input.
  */
 class Terminal
 {
@@ -29,24 +34,27 @@ public:
      * \brief Represents a command received from the terminal input.
      *
      * This structure is used to handle commands input by the user through the terminal.
-     * It consists of a command type and an optional floating-point argument provided by the user,
-     * which is used with specific commands, such as `set_voltage`.
+     * It consists of a command type and optional arguments provided by the user, which
+     * can include both a numeric and a string-based argument for specific commands.
      *
      * \param command_name The type of command issued by the user.
-     * \param argument A floating-point value that accompanies certain commands (e.g., `set_voltage`). It has a default value of 0, for commands that do not require an argument.
+     * \param numeric_argument A floating-point number used as an argument for commands that require numeric input (e.g., voltage).
+     * \param string_argument A string argument or character data used for commands that involve string-based input (e.g., SDI-12 command).
      */
     struct Command
     {
         enum command_name_t
         {
-            unrecognised = 0,
-            help,
-            set_voltage,
-            get_data,
-            shutdown
-        } command_name;
+            unrecognised = 0, /*!< Unrecognized or invalid command */
+            help,             /*!< Displays available commands */
+            set_voltage,      /*!< Sets the DAC voltage (requires numeric_argument) */
+            sdi12_send,       /*!< Sends an SDI-12 command (requires string_argument) */
+            get_data,         /*!< Retrieves current sensor data */
+            shutdown          /*!< Unmounts SD card and shuts down the system */
+        } command_name;       /*!< Stores the command type issued by the user. */
 
-        float argument; // To store the floating-point number (e.g., voltage)
+        float numeric_argument;      /*!< A floating-point number for commands requiring numeric input (e.g., voltage). */
+        std::string string_argument; /*!< A string argument for commands that require a textual input (e.g., SDI-12 command). */
     };
 
     void clear_terminal();

@@ -30,7 +30,9 @@ static uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
 static SDCard sd_card;            // lol global
 static FIL file;                  // lol also global
 static int is_data_logged = true; // flag checking if the most recently sampled data has been saved to the sd card
-// Function to be called by the timer, updates the most_recent_data global variable
+
+// arguments to be passed into the repeating timer function
+// TODO: address the sd card errors that occour when trying to write to the file inside this timer function
 struct sample_data_args
 {
     LoadCell *loadcell;
@@ -66,6 +68,9 @@ int main()
     dac.set_gain(MCP4716::ONE);
     dac.set_power_down(MCP4716::NORMAL);
     dac.set_voltage(most_recent_data.dac_voltage);
+
+    // init sdi-12
+    SDI12 sdi12(SDI12_UART_INSTANCE);
 
     // init sd card
     if (!sd_card.mount() || !sd_card.open_file("loadcell_log.csv", file))
@@ -111,14 +116,40 @@ int main()
             printf("> Unrecognised/invalid command\n");
             break;
         case Terminal::Command::help:
-            printf("> Help command \n> set_voltage - sets voltage value from 0-5V\n> get_data - gets the data from the sensors\n");
+            printf("> Help command \n> set_voltage - sets voltage value from 0-5V\n> get_data - gets the data from the sensors\n> sdi12_send - send whatever you want to the sdi12 bus\n> shutdown - safely shutdown the board\n");
             break;
         case Terminal::Command::set_voltage:
         {
-            float input_voltage = result.argument;
+            float input_voltage = result.numeric_argument;
             printf("> Setting voltage to %.2fV\n", input_voltage);
             dac.set_voltage(input_voltage);
             most_recent_data.dac_voltage = input_voltage;
+            break;
+        }
+        case Terminal::Command::sdi12_send:
+        {
+            std::string input_command = result.string_argument;
+            printf("> Sending SDI-12 command: %s\n", input_command.c_str());
+            sdi12.set_data_line_driven(true);
+            sdi12.send_break();
+            sdi12.send_command(input_command.c_str(), true);
+            absolute_time_t sdi12_start_time = get_absolute_time();
+            while (!uart_is_readable(SDI12_UART_INSTANCE) && !sdi12.is_timed_out(sdi12_start_time))
+            {
+                tight_loop_contents();
+            }
+            int sdi12_buffer_size = 128; // Internal buffer size for storing received characters
+            int buffer_index = 0;        // Reset index for new data reception
+            uint8_t ch;
+            char message_buffer[sdi12_buffer_size] = {0};
+            while (uart_is_readable(SDI12_UART_INSTANCE) && buffer_index < sdi12_buffer_size - 1)
+            {
+                ch = uart_getc(SDI12_UART_INSTANCE); // Read one character from the UART receive buffer
+                message_buffer[buffer_index++] = ch; // Store the character in the internal buffer
+                sleep_ms(10);                        // enough of a delay to allow the next character to come through
+            }
+            message_buffer[buffer_index] = '\0';
+            printf("> Received %d characters: %s\n", buffer_index, message_buffer);
             break;
         }
         case Terminal::Command::get_data:
