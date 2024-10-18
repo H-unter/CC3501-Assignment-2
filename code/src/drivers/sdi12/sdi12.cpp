@@ -43,7 +43,7 @@ void SDI12::send_command(const std::string &command, bool start_listening_after_
 bool SDI12::is_timed_out(absolute_time_t start_time)
 {
     int64_t time_diff_us = absolute_time_diff_us(start_time, get_absolute_time());
-    return (time_diff_us / 1000) > SDI12_MAX_RESPONSE_TIME_MS;
+    return (time_diff_us / 1000) > (SDI12_MAX_RESPONSE_TIME_MS);
 }
 
 void SDI12::set_data_line_driven(bool is_driven)

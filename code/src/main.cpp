@@ -23,16 +23,12 @@ int main()
         sdi12.set_data_line_driven(true);
         sdi12.send_break(); // Send the break signal to initiate communication
         sdi12.send_command("0I!", true);
-        absolute_time_t start_time = get_absolute_time();
-        while (!uart_is_readable(SDI12_UART_INSTANCE) && !sdi12.is_timed_out(start_time))
-        { // wait for the start of the repsonse
-            tight_loop_contents();
-        }
-        int buffer_size = 128;
+        sleep_ms(SDI12_MAX_RESPONSE_TIME_MS + 5); // wiggle room for sensors out of spec
+        int message_buffer_size = 128;
         uint8_t ch;
-        char message_buffer[buffer_size] = {0};
+        char message_buffer[message_buffer_size] = {0};
         int buffer_index = 0; // Reset index for new data reception
-        while (uart_is_readable(SDI12_UART_INSTANCE) && buffer_index < buffer_size - 1)
+        while (uart_is_readable(SDI12_UART_INSTANCE) && buffer_index < message_buffer_size - 1)
         {
             ch = uart_getc(SDI12_UART_INSTANCE); // Read one character from the UART receive buffer
             if (ch != '\0')
@@ -45,7 +41,7 @@ int main()
         printf("Received %d characters; message: %s\n", buffer_index, message_buffer);
 
         // Wait before sending the next command
-        sleep_ms(1000);
+        sleep_ms(500);
         test_number++;
     }
 }
