@@ -45,26 +45,40 @@ void SDI12::send_command(const std::string &command, bool start_listening_after_
 
 std::string SDI12::receive_command_blocking()
 {
-
-    sleep_ms(SDI12_MAX_RESPONSE_TIME_MS + 5);                  // Wiggle room for sensors out of spec
     absolute_time_t response_start_time = get_absolute_time(); // Get the current time
-    uint8_t character;
+
     const int sdi12_buffer_size = 128; // Internal buffer size for storing received characters
     char message_buffer[sdi12_buffer_size] = {0};
-    int buffer_index = 0; // Index for new data reception
-    while (uart_is_readable(uart_instance) && buffer_index < sdi12_buffer_size - 1 && !is_response_timed_out(response_start_time))
+    int buffer_index = 0;                  // Index for new data reception
+    bool carriage_return_received = false; // Tracks if '\r' has been received
+
+    bool is_end_of_message = false;
+    uint8_t ch;
+
+    while (buffer_index < sdi12_buffer_size - 1 && !is_response_timed_out(response_start_time))
     {
-        character = uart_getc(uart_instance); // Read one character from the UART receive buffer
-        bool is_unimportant_character = (character == '\r' || character == '\n' || character == '\0');
-        if (!is_unimportant_character)
+        if (!uart_is_readable(uart_instance))
         {
-            message_buffer[buffer_index++] = character; // Store the character in the internal buffer
-            sleep_ms(5);                                // Delay to allow the next character to come through
+            tight_loop_contents();
+            continue;
+        }
+        ch = uart_getc(uart_instance); // Read one character from the UART receive buffer
+        if (ch != '\0')
+        {
+            message_buffer[buffer_index++] = ch;
+        }
+
+        bool is_end_of_message = (ch == '\n' && buffer_index > 1 && message_buffer[buffer_index - 2] == '\r');
+        if (is_end_of_message)
+        {
+            message_buffer[buffer_index - 2] = '\0'; // Null-terminate the message string before the '\r\n' characters
+            printf("end of message\n");
+            break;
         }
     }
     message_buffer[buffer_index] = '\0'; // Null-terminate the message string
-    return std::string(message_buffer);  // Return the received message as a C++ string
     is_dataline_busy = false;
+    return std::string(message_buffer); // Return the received message as a C++ string
 }
 
 bool SDI12::is_response_timed_out(absolute_time_t start_time)
