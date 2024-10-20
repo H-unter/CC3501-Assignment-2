@@ -67,9 +67,10 @@ private:
     static const int terminal_buffer_size = 256;
     char terminal_buffer[terminal_buffer_size];
     int terminal_buffer_index;
-
+    std::string previous_command; // Attribute to store the previous command
     Command::command_name_t parse_command(const char *input);
     float parse_float(const char *input);
+    void load_previous_command();
 };
 
 #endif // TERMINAL_H
