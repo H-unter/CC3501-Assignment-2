@@ -57,6 +57,25 @@ public:
      */
     std::string receive_command_blocking();
 
+    /*!
+     * \brief Parses the wait time from a "0M!" response string.
+     *
+     * \param response The response string from the "0M!" command.
+     * \return The wait time in seconds as an integer. Returns -1 if parsing fails.
+     */
+    int parse_wait_time_from_measure_response(const std::string &response);
+
+    /*!
+     * \brief Parses the float value from an SDI-12 response.
+     *
+     * This function parses the float value after the address and the '+' or '-' sign in the response.
+     * Assumes the response format is something like "00+24.1" or "00-12.3".
+     *
+     * \param response The SDI-12 response string (e.g., "00+24.1").
+     * \return The parsed float value. Returns 0.0 if the parsing fails.
+     */
+    float parse_value_from_response(const std::string &response);
+
 private:
     uart_inst_t *uart_instance; // UART instance (e.g., uart1)
     uint tx_pin;                // UART TX pin

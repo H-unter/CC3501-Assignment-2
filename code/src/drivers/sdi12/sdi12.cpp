@@ -72,7 +72,6 @@ std::string SDI12::receive_command_blocking()
         if (is_end_of_message)
         {
             message_buffer[buffer_index - 2] = '\0'; // Null-terminate the message string before the '\r\n' characters
-            printf("end of message\n");
             break;
         }
     }
@@ -91,4 +90,42 @@ bool SDI12::is_response_timed_out(absolute_time_t start_time)
 void SDI12::set_data_line_driven(bool is_driven)
 {
     gpio_put(enable_pin, is_driven);
+}
+
+int SDI12::parse_wait_time_from_measure_response(const std::string &response)
+{
+    if (response.length() >= 3)
+    {
+        // Extract the wait time from characters 2 and 3 (index 1 and 2)
+        std::string wait_time_str = response.substr(1, 2);
+
+        // Manually check if both characters are digits
+        if (isdigit(wait_time_str[0]) && isdigit(wait_time_str[1]))
+        {
+            return std::stoi(wait_time_str); // Convert the string to an integer
+        }
+        else
+        {
+            printf("Error: Invalid wait time format in response.\n");
+            return -1;
+        }
+    }
+
+    // If the response is too short or malformed, return -1
+    printf("Error: Response too short to parse wait time.\n");
+    return -1;
+}
+
+float SDI12::parse_value_from_response(const std::string &response)
+{
+    // Find the position of the '+' sign
+    size_t pos = response.find('+');
+    if (pos == std::string::npos || pos + 1 >= response.size())
+    {
+        // Handle invalid response format
+        return -1.0f; // Return an error value
+    }
+
+    // Extract the part of the string after the '+' and convert it to a float
+    return std::stof(response.substr(pos + 1));
 }

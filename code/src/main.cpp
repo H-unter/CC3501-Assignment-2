@@ -30,6 +30,12 @@ static uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
 static SDCard sd_card;            // lol global
 static FIL file;                  // lol also global
 static int is_data_logged = true; // flag checking if the most recently sampled data has been saved to the sd card
+static bool sdi12_start_measurement_flag = false;
+static bool sdi12_get_measurement_flag = false;
+
+// move this lol:
+absolute_time_t measurement_start_time = get_absolute_time();
+int wait_time_s = 1;
 
 // arguments to be passed into the repeating timer function
 // TODO: address the sd card errors that occour when trying to write to the file inside this timer function
@@ -44,7 +50,8 @@ bool sample_data(struct repeating_timer *t)
     struct sample_data_args *components = (struct sample_data_args *)t->user_data;
     most_recent_data.loadcell_voltage = components->loadcell->read_voltage();
     most_recent_data.loadcell_weight = components->loadcell->sample_mass();
-    // sample the sdi-12 sensors TODO: figure out which commands we have to send in order to do this
+    // set flags to sample the sdi12 bus when the sensors are ready
+    sdi12_start_measurement_flag = true;
 
     // save this all to the sd card (appen to the end of the .csv file)
     uint64_t current_time_ms = to_ms_since_boot(get_absolute_time());
@@ -82,16 +89,42 @@ int main()
 
     // init sampling timer
     struct repeating_timer timer;
-    int32_t sampling_rate_ms = 100;
+    int32_t sampling_rate_ms = 500;
     struct sample_data_args sample_data_arguments = {&loadcell, &dac};
     add_repeating_timer_ms(sampling_rate_ms, sample_data, (void *)&sample_data_arguments, &timer);
 
     while (true)
     {
+
         if (is_data_logged == false)
         {
             write_csv_row(sd_card, file, most_recent_data);
             is_data_logged = true;
+        }
+
+        if (sdi12_start_measurement_flag == true)
+        {
+            sdi12.set_data_line_driven(true);
+            sdi12.send_break();
+            sdi12.send_command("0M!", true);
+            std::string command_response = sdi12.receive_command_blocking();
+            printf("Received %d characters: %s\n", command_response.length(), command_response.c_str());
+            int wait_time_s = sdi12.parse_wait_time_from_measure_response(command_response);
+            measurement_start_time = get_absolute_time();
+            sdi12_start_measurement_flag = false;
+            sdi12_get_measurement_flag = true;
+        }
+        bool is_measurement_ready = (sdi12_get_measurement_flag == true &&
+                                     absolute_time_diff_us(measurement_start_time, get_absolute_time()) / 1000000 >= wait_time_s);
+        if (is_measurement_ready)
+        {
+            sdi12.set_data_line_driven(true);
+            sdi12.send_break();
+            sdi12.send_command("0D0!", true);
+            std::string command_response = sdi12.receive_command_blocking();
+            float measurement = sdi12.parse_value_from_response(command_response);
+            printf("Measurement: %f\n", measurement);
+            sdi12_get_measurement_flag = false;
         }
 
         int input_character = getchar_timeout_us(0);
