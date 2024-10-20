@@ -9,6 +9,8 @@
 class SDI12
 {
 public:
+    bool is_dataline_busy = false; // Indicates whether the data line is currently busy
+
     // Constructor: Initializes UART and GPIO pins for SDI-12 communication
     SDI12(uart_inst_t *uart_instance);
 
@@ -31,12 +33,12 @@ public:
     void send_command(const std::string &command, bool start_listening_after_command);
 
     /*!
-     * \brief Checks if the current elapsed time has exceeded the global timeout value.
+     * \brief Checks if the current elapsed time has exceeded the maximum response transmit time
      *
      * \param start_time The time when the operation started (in absolute time format). `absolute_time_t start_time = get_absolute_time();`
      * \return true if the timeout has been exceeded, false otherwise.
      */
-    bool is_timed_out(absolute_time_t start_time);
+    bool is_response_timed_out(absolute_time_t start_time);
 
     /*!
      * \brief Sets the data line to be driven or received from.
@@ -44,6 +46,16 @@ public:
      * \param is_driven true to drive the data line, false to receive data.
      */
     void set_data_line_driven(bool is_driven);
+
+    /*!
+     * \brief Receives a command from the UART.
+     *
+     * This function will block until a full command is received from the UART.
+     * It will return the received command as a C++ string.
+     *
+     * \return The received command as a C++ string.
+     */
+    std::string receive_command_blocking();
 
 private:
     uart_inst_t *uart_instance; // UART instance (e.g., uart1)
