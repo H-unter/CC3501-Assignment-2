@@ -1,6 +1,6 @@
 \subsection{Communication Protocols and OSI Model Layers}
 
-In designing the embedded system, several communication protocols were implemented to interface with various sensors and peripherals. Understanding how these protocols map onto the OSI model layers, particularly the physical and data link layers, is crucial for ensuring reliable and efficient data transmission. This section explains the OSI model implementation for each protocol used: SDI-12/UART/RS485, SPI, I2C, and analog inputs and outputs.
+In designing the embedded system, several communication protocols were implemented to interface with various sensors and peripherals. Understanding how these protocols map onto the OSI model layers, particularly the physical and data link layers, is crucial for ensuring reliable and efficient data transmission. This section explains the OSI model implementation for each protocol used: SDI-12/UART/RS485, SPI, I2C, and analogue inputs and outputs.
 
 \subsection{SDI-12/UART/RS485 Communication}
 \textbf{Physical Layer}
@@ -21,7 +21,7 @@ By using only the non-inverting line of the RS485 transceiver and setting approp
 
 At the data link layer, the SDI-12 protocol defines the communication between the data recorder (master) and the sensors (slaves). It operates at 1200 baud with 7 data bits, even parity, and one stop bit. The protocol specifies a set of ASCII commands for initiating measurements, requesting data, and managing sensor addresses.
 
-In the current implementation, the system communicates with two SDI-12 sensors whose addresses are hardcoded. This approach simplifies the software but limits the system's scalability and flexibility. SDI-12 allows for up to ten sensors on a single data line, each with a unique address. A more extensible system would implement a discovery process using the SDI-12 "Address Query" command (?!) to identify all connected sensors dynamically. This would enable the system to communicate with any number of sensors without prior knowledge of their addresses, fully utilizing the hardware's capability for extensibility.
+In the current implementation, the system communicates with two SDI-12 sensors whose addresses are hardcoded. This approach simplifies the software but limits the system's scalability and flexibility. SDI-12 allows for up to ten sensors on a single data line, each with a unique address. A more extensible system would implement a discovery process using the SDI-12 "Address Query" command (?!) to identify all connected sensors dynamically. This would enable the system to communicate with any number of sensors without prior knowledge of their addresses, fully utilising the hardware's capability for extensibility.
 
 \subsection{SPI Communication (SD Card)}
 \textbf{Physical Layer}
@@ -30,7 +30,7 @@ The SPI protocol is used for communication with the SD card module. SPI is a syn
 \begin{itemize}
     \item MOSI (Master Out Slave In): Transfers data from the master to the slave.
     \item MISO (Master In Slave Out): Transfers data from the slave to the master.
-    \item SCK (Serial Clock): Synchronizes data transmission between the master and slave.
+    \item SCK (Serial Clock): Synchronises data transmission between the master and slave.
     \item SS (Slave Select): Enables the slave device for communication.
 \end{itemize}
 In this system, the SPI bus operates at a clock speed of 1 MHz, suitable for reliable data transfer with the SD card.
@@ -45,20 +45,20 @@ At the data link layer, the SPI protocol manages the exchange of data bytes betw
 The I2C protocol is used for communication with the MCP4716 DAC. I2C is a synchronous, multi-master, multi-slave, single-ended serial communication bus. It uses two bidirectional open-drain lines:
 \begin{itemize}
     \item SDA (Serial Data Line): Transfers data between devices.
-    \item SCL (Serial Clock Line): Provides the clock signal for synchronization.
+    \item SCL (Serial Clock Line): Provides the clock signal for synchronisation.
 \end{itemize}
 Pull-up resistors are used on both lines to maintain the high logic level when the bus is idle. In this system, the I2C bus operates at a standard mode speed of 100 kHz.
 
 \textbf{Data Link Layer}
 
-At the data link layer, the I2C protocol handles addressing and data transfer between the master (RP2040 microcontroller) and the slave device (DAC). Each device on the I2C bus has a unique 7-bit address. The protocol defines start and stop conditions, acknowledgments, and data byte transfers. The software includes drivers to configure the DAC's settings, such as reference voltage and gain, and to send digital values that the DAC converts into analog voltages. This allows precise control over the dew point generator.
+At the data link layer, the I2C protocol handles addressing and data transfer between the master (RP2040 microcontroller) and the slave device (DAC). Each device on the I2C bus has a unique 7-bit address. The protocol defines start and stop conditions, acknowledgments, and data byte transfers. The software includes drivers to configure the DAC's settings, such as reference voltage and gain, and to send digital values that the DAC converts into analogue voltages. This allows precise control over the dew point generator.
 
-\subsection{Analog Inputs and Outputs}
+\subsection{Analogue Inputs and Outputs}
 \textbf{Physical Layer}
 
-Analog inputs and outputs are used to interface with devices like the load cell (MT-603) and the dew point generator (LI-610). The load cell produces an analog voltage proportional to the applied weight, which is connected to the RP2040's ADC pins. An instrumentation amplifier (e.g., INA826) is used to amplify the small signal from the load cell. The dew point generator accepts a 0–5 V analog input for control, which is provided by the DAC's output.
+Analogue inputs and outputs are used to interface with devices like the load cell (MT-603) and the dew point generator (LI-610). The load cell produces an analogue voltage proportional to the applied weight, which is connected to the RP2040's ADC pins. An instrumentation amplifier (e.g., INA826) is used to amplify the small signal from the load cell. The dew point generator accepts a 0–5 V analogue input for control, which is provided by the DAC's output.
 
 \textbf{Data Link Layer}
 
-In the context of analog signals, there is no formal data link layer as in digital communication protocols. However, signal conditioning and conversion processes serve similar functions. For analog inputs, the signal from the load cell is amplified and filtered before being digitized by the ADC. For analog outputs, the DAC converts digital values from the microcontroller into precise analog voltages to control the dew point generator's settings.
+In the context of analogue signals, there is no formal data link layer as in digital communication protocols. However, signal conditioning and conversion processes serve similar functions. For analogue inputs, the signal from the load cell is amplified and filtered before being digitised by the ADC. For analogue outputs, the DAC converts digital values from the microcontroller into precise analogue voltages to control the dew point generator's settings.
 
