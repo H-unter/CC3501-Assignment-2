@@ -43,8 +43,9 @@ struct data_sample
     float loadcell_voltage;
     float loadcell_weight;
     float dac_voltage;
+    float leaf_temperature;
 
-    data_sample() : elapsed_time_ms(0), loadcell_voltage(0.0f), loadcell_weight(0.0f), dac_voltage(0.0f) {}
+    data_sample() : elapsed_time_ms(0), loadcell_voltage(0.0f), loadcell_weight(0.0f), dac_voltage(0.0f), leaf_temperature(0.0f) {}
 };
 
 /*!

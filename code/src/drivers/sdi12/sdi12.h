@@ -28,7 +28,7 @@ public:
      * It will wait until the command is fully transmitted before returning.
      *
      * \param command The SDI-12 command as a C++ string to send.
-     * \param start_listening_after_command If true, the UART will be set to listen for a response after the command is sent.
+     * \param start_listening_after_command If true, the UART will be set to listen for a response after the command is sent. (stop driving the data line)
      */
     void send_command(const std::string &command, bool start_listening_after_command);
 

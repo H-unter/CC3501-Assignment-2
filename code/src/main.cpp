@@ -31,11 +31,11 @@ static SDCard sd_card;            // lol global
 static FIL file;                  // lol also global
 static int is_data_logged = true; // flag checking if the most recently sampled data has been saved to the sd card
 static bool sdi12_start_measurement_flag = false;
-static bool sdi12_get_measurement_flag = false;
+static bool sdi12_end_measurement_flag = false;
 
 // move this lol:
-absolute_time_t measurement_start_time = get_absolute_time();
-int wait_time_s = 1;
+uint64_t measurement_start_time;
+int measurement_wait_time_s;
 
 // arguments to be passed into the repeating timer function
 // TODO: address the sd card errors that occour when trying to write to the file inside this timer function
@@ -50,15 +50,14 @@ bool sample_data(struct repeating_timer *t)
     struct sample_data_args *components = (struct sample_data_args *)t->user_data;
     most_recent_data.loadcell_voltage = components->loadcell->read_voltage();
     most_recent_data.loadcell_weight = components->loadcell->sample_mass();
-    // set flags to sample the sdi12 bus when the sensors are ready
+    // set flags to sample the sdi12 bus when the sdi12 bus is ready
     sdi12_start_measurement_flag = true;
-
-    // save this all to the sd card (appen to the end of the .csv file)
     uint64_t current_time_ms = to_ms_since_boot(get_absolute_time());
     most_recent_data.elapsed_time_ms = current_time_ms - start_time_ms;
-    is_data_logged = false;
+    is_data_logged = false; // save to sd card whhen the program is ready
     return true;
 }
+
 int main()
 {
     // init load cell
@@ -102,29 +101,42 @@ int main()
             is_data_logged = true;
         }
 
-        if (sdi12_start_measurement_flag == true)
+        if (sdi12_start_measurement_flag == true && !sdi12.is_dataline_busy && !sdi12_end_measurement_flag)
         {
             sdi12.set_data_line_driven(true);
             sdi12.send_break();
             sdi12.send_command("0M!", true);
             std::string command_response = sdi12.receive_command_blocking();
-            printf("Received %d characters: %s\n", command_response.length(), command_response.c_str());
-            int wait_time_s = sdi12.parse_wait_time_from_measure_response(command_response);
-            measurement_start_time = get_absolute_time();
-            sdi12_start_measurement_flag = false;
-            sdi12_get_measurement_flag = true;
+            // printf("Received %d characters: %s\n", command_response.length(), command_response.c_str());
+            bool is_valid_start_measurement_start_response = command_response.length() == 5;
+            if (is_valid_start_measurement_start_response)
+            {
+                int measurement_wait_time_s = sdi12.parse_wait_time_from_measure_response(command_response);
+                // printf("Measurement wait time: %d\n", measurement_wait_time_s);
+                measurement_start_time = to_ms_since_boot(get_absolute_time());
+                sdi12_start_measurement_flag = false;
+                sdi12_end_measurement_flag = true;
+                sleep_ms(1000 * measurement_wait_time_s);
+            }
         }
-        bool is_measurement_ready = (sdi12_get_measurement_flag == true &&
-                                     absolute_time_diff_us(measurement_start_time, get_absolute_time()) / 1000000 >= wait_time_s);
+        int64_t measurement_elapsed_time_ms = to_ms_since_boot(get_absolute_time()) - measurement_start_time;
+        float measurement_elapsed_time_s = float(measurement_elapsed_time_ms) / 1000.0f;
+        bool is_measurement_ready = (sdi12_end_measurement_flag && measurement_elapsed_time_s >= measurement_wait_time_s);
         if (is_measurement_ready)
         {
             sdi12.set_data_line_driven(true);
             sdi12.send_break();
             sdi12.send_command("0D0!", true);
-            std::string command_response = sdi12.receive_command_blocking();
-            float measurement = sdi12.parse_value_from_response(command_response);
-            printf("Measurement: %f\n", measurement);
-            sdi12_get_measurement_flag = false;
+            std::string measurement_response = sdi12.receive_command_blocking();
+            // printf("Received %d characters: %s\n", measurement_response.length(), measurement_response.c_str());
+            bool is_valid_measurement_response = (measurement_response.find('+') != std::string::npos);
+            if (is_valid_measurement_response)
+            {
+                float measurement = sdi12.parse_value_from_response(measurement_response);
+                // printf("Measurement: %f\n", measurement);
+                most_recent_data.leaf_temperature = measurement;
+                sdi12_end_measurement_flag = false;
+            }
         }
 
         int input_character = getchar_timeout_us(0);

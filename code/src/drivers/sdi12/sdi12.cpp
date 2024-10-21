@@ -94,15 +94,26 @@ void SDI12::set_data_line_driven(bool is_driven)
 
 int SDI12::parse_wait_time_from_measure_response(const std::string &response)
 {
-    if (response.length() >= 3)
+    if (response.length() >= 4)
     {
-        // Extract the wait time from characters 2 and 3 (index 1 and 2)
-        std::string wait_time_str = response.substr(1, 2);
+        // Extract the wait time from characters 1 through (length - 1), excluding the last digit
+        std::string wait_time_str = response.substr(1, response.length() - 2);
 
-        // Manually check if both characters are digits
-        if (isdigit(wait_time_str[0]) && isdigit(wait_time_str[1]))
+        // Manually check if all characters in the substring are digits
+        bool all_digits = true;
+        for (char c : wait_time_str)
         {
-            return std::stoi(wait_time_str); // Convert the string to an integer
+            if (!isdigit(c))
+            {
+                all_digits = false;
+                break;
+            }
+        }
+
+        if (all_digits)
+        {
+            // Convert the string to an integer and return it
+            return std::stoi(wait_time_str);
         }
         else
         {
