@@ -21,7 +21,7 @@ As seen in \cref{block_diagram}, the system consists of
 
 \textbf{Data Logging and Storage:} An SD card module was added to the schematic, utilizing the SPI interface as defined in the RP2040 datasheet. This module enabled reliable data storage and allowed easy access to logged data for further analysis. The SPI bus operates at a clock speed of 1 MHz, which is suitable for reliable data transfer with the SD card.
 
-\textbf{DAC Integration:}The MCP4716 DAC was integrated to provide fine-grained control of the dew point generator. Proper bypass capacitors were placed near the V<sub>DD</sub> pin to minimize induced noise and ensure stable operation. The DAC communicates with the RP2040 over the I2C bus at a standard mode speed of 100 kHz.
+\textbf{DAC Integration:}The MCP4716 DAC was integrated to provide fine-grained control of the dew point generator. Proper bypass capacitors were placed near the V\textsubscript{DD} pin to minimize induced noise and ensure stable operation. The DAC communicates with the RP2040 over the I2C bus at a standard mode speed of 100 kHz.
 
 An initial approach to converting a digital signal to an analogue signal was Pulse Width Modulation (PWM).However, this method proved unreliable and inaccurate when tested with a Raspberry Pi Pico. As a result, a digital to analogue converter (DAC) was selected instead.
 
