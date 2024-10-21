@@ -42,11 +42,12 @@ struct data_sample
     uint64_t elapsed_time_ms;
     float loadcell_voltage;
     float loadcell_weight;
-    float dac_voltage;
+    float dac_voltage;    // input to the dew poit generator
+    uint16_t dpg_voltage; // output from the dew point generator
     float leaf_temperature;
     float sap_flow;
 
-    data_sample() : elapsed_time_ms(0), loadcell_voltage(0.0f), loadcell_weight(0.0f), dac_voltage(0.0f), leaf_temperature(0.0f), sap_flow(0.0f) {}
+    data_sample() : elapsed_time_ms(0), loadcell_voltage(0.0f), loadcell_weight(0.0f), dac_voltage(0.0f), dpg_voltage(0.0f), leaf_temperature(0.0f), sap_flow(0.0f) {}
 };
 
 /*!

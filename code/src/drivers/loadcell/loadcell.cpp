@@ -24,6 +24,7 @@ void LoadCell::init(int adc_pin, float alpha)
 // Read the ADC value and convert it to voltage
 float LoadCell::read_voltage()
 {
+    adc_select_input(adc_pin - 26); // eg adc_pin 26 is adc channel 0
     return adc_read() * conversion_factor;
 }
 

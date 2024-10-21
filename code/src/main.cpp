@@ -53,6 +53,10 @@ bool sample_data(struct repeating_timer *t)
     struct sample_data_args *components = (struct sample_data_args *)t->user_data;
     most_recent_data.loadcell_voltage = components->loadcell->read_voltage();
     most_recent_data.loadcell_weight = components->loadcell->sample_mass();
+    adc_select_input(DPG_ADC_PIN - 26);
+
+    uint16_t dpg_voltage_input = adc_read() * (3.3f / (1 << 12));
+    most_recent_data.dpg_voltage = dpg_voltage_input;
     // set flags to sample the sdi12 bus when the sdi12 bus is ready
     sdi12_s0_start_measurement_flag = true;
     sdi12_s1_start_measurement_flag = true;
@@ -228,9 +232,13 @@ int main()
         }
         case Terminal::Command::get_data:
             printf("> Get data command\n");
+            printf("Elapsed Time: %llu ms\n", most_recent_data.elapsed_time_ms);
             printf("Plant Mass: %f kg\n", most_recent_data.loadcell_weight);
             printf("Loadcell Voltage: %f V\n", most_recent_data.loadcell_voltage);
-            printf("DAC Voltage: %f V\n", most_recent_data.dac_voltage);
+            printf("DAC input Voltage: %f V\n", most_recent_data.dac_voltage);
+            printf("DPG Voltage: %f V\n", most_recent_data.dpg_voltage);
+            printf("Leaf Temperature: %f C\n", most_recent_data.leaf_temperature);
+            printf("Sap Flow: %f ml/hour\n", most_recent_data.sap_flow);
             break;
         case Terminal::Command::shutdown:
             printf("> Shutting down...\n");
