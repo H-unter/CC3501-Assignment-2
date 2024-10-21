@@ -1,25 +1,28 @@
 \documentclass{standalone}
 \usepackage{circuitikz}
 
+\definecolor{darkgreen}{rgb}{0.0, 0.7, 0.0}
+
 \begin{document}
 
 \begin{circuitikz}
     \tikzstyle{every node}=[font=\small, align=center]
 
     % Main Board Square
-    \draw[line width=2pt,fill=lime ] (-2.25,-2) rectangle (11,12);
+    \draw[line width=2pt,fill=darkgreen ] (-2.25,-2) rectangle (11,12);
     \node at (-2.25,12) [anchor=north west] {\LARGE Main Board};
 
     % RP2040 Main Square
     \draw[line width=2pt,fill=lightgray ] (0,-1.5) rectangle (10,11);
-    \draw[line width=1pt,fill=white](1,-1) rectangle  node {\LARGE UART0} (3.25,0.5);
-    \draw[line width=1pt,fill=white](4.25,-1) rectangle  node {\LARGE USB} (5,0.5);
-    \draw[line width=1pt,fill=white](1,0.75) rectangle  node {\LARGE UART1} (3.25,2.25);
-    \draw [ line width=1pt,fill=white ] (1,3) rectangle  node {\LARGE ADC3} (3.25,3.875);
-    \draw [ line width=1pt,fill=white ] (1,4.125) rectangle  node {\LARGE ADC2} (3.25,5);
-    \draw [ line width=1pt,fill=white ] (1,5.5) rectangle  node {\LARGE ADC1} (3.25,6.25);
-    \draw [ line width=1pt,fill=white ] (1,6.5) rectangle  node {\LARGE I2C1} (3.25,8.25);
-    \draw [ line width=1pt,fill=white ] (1,8.5) rectangle  node {\LARGE SPI0} (3.25,10.5);
+    \node at (10,11) [anchor=north east] {\LARGE RP2040};
+    \draw[line width=1pt,fill=white](1,-1) rectangle  node {\LARGE UART0} (3.5,0.5);
+    \draw[line width=1pt,fill=white](6.5,-1) rectangle  node {\LARGE USB} (9.5,0.5);
+    \draw[line width=1pt,fill=white](1,0.75) rectangle  node {\LARGE UART1} (3.5,2.25);
+    \draw [ line width=1pt,fill=white ] (1,2.75) rectangle  node {\LARGE ADC3} (3.5,3.75);
+    \draw [ line width=1pt,fill=white ] (1,4) rectangle  node {\LARGE ADC2} (3.5,5);
+    \draw [ line width=1pt,fill=white ] (1,5.5) rectangle  node {\LARGE ADC1} (3.5,6.5);
+    \draw [ line width=1pt,fill=white ] (1,6.75) rectangle  node {\LARGE I2C1} (3.5,8.25);
+    \draw [ line width=1pt,fill=white ] (1,8.5) rectangle  node {\LARGE SPI0} (3.5,10.5);
 
 
     % Large red dotted rectangle
@@ -27,48 +30,70 @@
     \node at (-13,5.25) [red,anchor=north west] {\LARGE Sensors};
 
     % SD Card
-    \draw [ line width=1pt,fill=white ] (-3,8.5) rectangle  node {\large SD Card} (-5.25,10.5);
-    \node [font=\small, align=center, anchor=south west] at (-2,10.25) {CS};
-    \node [font=\small, align=center, anchor=south west] at (-2,9.75) {MOSI};
-    \node [font=\small, align=center, anchor=south west] at (-2,9.25) {CLK};
-    \node [font=\small, align=center, anchor=south west] at (-2,8.75) {MISO};
-    \draw [line width=1pt] (-3,10.25) to[short] (1,10.25);
-    \draw [line width=1pt] (-3,9.75) to[short] (1,9.75);
-    \draw [line width=1pt] (-3,9.25) to[short] (1,9.25);
-    \draw [line width=1pt] (-3,8.75) to[short] (1,8.75);
+    \draw [ line width=1pt,fill=white ] (-6,8.5) rectangle  node {\large SD Card} (-8.25,10.5);
+    \node [font=\small, align=center, anchor=south west] at (-6,10.25) {CS};
+    \node [font=\small, align=center, anchor=south west] at (-6,9.75) {MOSI};
+    \node [font=\small, align=center, anchor=south west] at (-6,9.25) {CLK};
+    \node [font=\small, align=center, anchor=south west] at (-6,8.75) {MISO};
+    \draw [line width=1pt] (-6,10.25) to[short] (1,10.25);
+    \draw [line width=1pt] (-6,9.75) to[short] (1,9.75);
+    \draw [line width=1pt] (-6,9.25) to[short] (1,9.25);
+    \draw [line width=1pt] (-6,8.75) to[short] (1,8.75);
 
     % DAC
-    \draw [ line width=1pt,fill=white ] (-2,5.5) rectangle  node {\small DAC} (-1,7.5);
+    \draw [ line width=1pt,fill=white ] (-2,6.75) rectangle  node {\small DAC} (-1,8.25);
     \node [font=\small, align=center, anchor=south west] at (-1,7.75) {SCL};
-    \node [font=\small, align=center, anchor=south west] at (-1,7) {SDA};
+    \node [font=\small, align=center, anchor=south west] at (-1,7.25) {SDA};
     \draw[ line width=1pt] (-1,7.75) to[short] (1,7.75); % DAC to IC21
-    \draw[ line width=1pt] (-1,7) to[short] (1,7); % DAC to IC21
+    \draw[ line width=1pt] (-1,7.25) to[short] (1,7.25); % DAC to IC21
 
 
     % ADC and Load Cells
         % wires from ADC to Load Cells
-        \draw [line width=1pt] (1,3.5) to[short] (-1,3.5);
+        \draw [line width=1pt] (1,3.25) to[short] (-1,3.25);
         \draw [line width=1pt] (1,4.5) to[short] (-1,4.5);
         % add small op amps with the output connected to the end of the wires
 
         % Triangle for the first amplification at (-2, 3.5), flipped to point right
-        \draw [line width=1pt,fill=white] (-2, 3.2) -- (-2, 3.8) -- (-1.5, 3.5) -- cycle;
-        \draw [line width=1pt,fill=white] (-1.5,3.5) -- (-1,3.5); % Connect output to wire
-        \node [anchor=south west] at (-1.8, 3.5) {In-Amp}; % Label for the second triangle
+        \draw [line width=1pt,fill=white] (-2, 2.95) -- (-2, 3.55) -- (-1.5, 3.25) -- cycle;
+        \draw [line width=1pt,fill=white] (-1.5,3.25) -- (-1,3.25); % Connect output to wire
+        \node [anchor=south west] at (-1.8, 3.25) {In-Amp}; % Label for the second triangle
 
         % Triangle for the second amplification at (-2, 4.5), flipped to point right
         \draw [line width=1pt,fill=white] (-2, 4.2) -- (-2, 4.8) -- (-1.5, 4.5) -- cycle;
         \draw [line width=1pt,fill=white] (-1.5,4.5) -- (-1,4.5); % Connect output to wire
         \node [anchor=south west] at (-1.8, 4.5) {In-Amp}; % Label for the second triangle
 
-        \draw [ line width=1pt,fill=white ] (-3,3) rectangle  node {\large Loadcell 1} (-5.25,3.875);
-        \draw [ line width=1pt,fill=white ] (-3,4.125) rectangle  node {\large Loadcell 2} (-5.25,5);
+        \draw [ line width=1pt,fill=white ] (-3,2.8125) rectangle  node {\large Loadcell 1} (-5.25,3.6875);
+        \draw [ line width=1pt,fill=white ] (-3,4.0625) rectangle  node {\large Loadcell 2} (-5.25,4.9375);
         \draw [line width=1pt] (-3,4.5) to[short] (-2,4.5);
-        \draw [line width=1pt] (-3,3.5) to[short] (-2,3.5);
+        \draw [line width=1pt] (-3,3.25) to[short] (-2,3.25);
 
-        % Dew Point Generator Data
-        \draw [ line width=1pt,fill=white ] (-3,2) rectangle  node {\large Dew Point Generator Data} (-9.25,2.875);
-        \draw [line width=1pt] (-3,2.5) to[short] (1,2.5);
+        % Dew Point Generator
+        \draw [ line width=1pt,fill=white ] (-6,5.5) rectangle  node {\large Dew Point Generator} (-11,8.25);
+        \node [font=\small, align=center, anchor=south west] at (-6,7.375) {Control};
+        \node [font=\small, align=center, anchor=south west] at (-6,6) {Data};
+        \draw [line width=1pt] (-6,7.375) to[short] (-2,7.375);
+        \draw [line width=1pt] (-6,6) to[short] (1,6);
+
+        % Debugger
+        \draw [ line width=1pt,fill=white ] (1,-5) rectangle  node {\large Debugger} (3.5,-4);
+        \node [font=\small, align=center, anchor=south west, rotate=90] at (1.5,-4) {SWDIO};
+        \node [font=\small, align=center, anchor=south west, rotate=90] at (2,-4) {SWCLK};
+        \node [font=\small, align=center, anchor=south west, rotate=90] at (2.5,-4) {RX};
+        \node [font=\small, align=center, anchor=south west, rotate=90] at (3,-4) {TX};
+        \draw [line width=1pt] (1.5,-4) to[short] (1.5,-1);
+        \draw [line width=1pt] (2,-4) to[short] (2,-1);
+        \draw [line width=1pt] (2.5,-4) to[short] (2.5,-1);
+        \draw [line width=1pt] (3,-4) to[short] (3,-1);
+
+        % PC
+        \draw [ line width=1pt,fill=white ] (6.5,-5) rectangle  node {\large PC} (9.5,-3.5);
+        \node [font=\small, align=center, anchor=south west, rotate=90] at (7.5,-3.5) {Data +};
+        \node [font=\small, align=center, anchor=south west, rotate=90] at (8.5,-3.5) {Data -};
+        \draw [line width=1pt] (7.5,-3.5) to[short] (7.5,-1);
+        \draw [line width=1pt] (8.5,-3.5) to[short] (8.5,-1);
+
 
 
 
@@ -93,7 +118,7 @@
     % SDI-12 Data lines
         \draw[ line width=1pt] (-2,2) to[short] (-11.5,2);
         \draw[ line width=1pt] (-2,1) to[short] (-11.5,1);
-        \node [font=\small, align=center, anchor=south east] at (-2,1) {0-5V Data Line};
+        \node [font=\small, align=center, anchor=south east] at (-3,1) {0-5V Data Line};
         % line A termination elements (text and hollow dot)
         \node [font=\LARGE] at (-12.75,2) {A};
         \draw [ line width=1pt](-11.5,2) to[short, -o] (-12.25,2) ;
