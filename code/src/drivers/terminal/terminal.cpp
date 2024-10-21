@@ -6,6 +6,7 @@ Terminal::Terminal()
 {
     stdio_init_all();
     reset_buffer();
+    previous_command = "";
 }
 
 // Clears the terminal screen
@@ -24,15 +25,30 @@ void Terminal::reset_buffer()
     terminal_buffer_index = 0;
 }
 
+// Loads the previous command into the terminal buffer
+void Terminal::load_previous_command()
+{
+    if (!previous_command.empty())
+    {
+        reset_buffer(); // Clear the current buffer
+        strncpy(terminal_buffer, previous_command.c_str(), terminal_buffer_size - 1);
+        terminal_buffer_index = strlen(terminal_buffer); // Update the buffer index
+        printf("\r%s", terminal_buffer);                 // Print the loaded command
+    }
+}
+
 // Handles character input and checks if a full command has been entered
 bool Terminal::handle_character_input(char input_character)
 {
     bool is_enter_received = input_character == '\r';
     bool is_backspace_received = input_character == 127;
+    bool is_up_arrow_received = input_character == 27;
+    bool is_unsupported_character = input_character == '[' || input_character == 'A'; // part of an escape sequence
 
     if (is_enter_received)
     {
-        terminal_buffer[terminal_buffer_index] = '\0'; // Null-terminate
+        previous_command = std::string(terminal_buffer); // Store the command as previous_command
+        terminal_buffer[terminal_buffer_index] = '\0';   // Null-terminate
         printf("\r\n");
         return true;
     }
@@ -45,6 +61,15 @@ bool Terminal::handle_character_input(char input_character)
         terminal_buffer_index--;
         terminal_buffer[terminal_buffer_index] = '\0';
         printf("%c", input_character);
+        return false;
+    }
+    if (is_up_arrow_received)
+    {
+        load_previous_command(); // Load the previous command into the buffer
+        return false;
+    }
+    if (is_unsupported_character)
+    {
         return false;
     }
 
