@@ -2,10 +2,15 @@
 
 \section{System Design Overview}
 
-The system was designed around the RP2040 microcontroller, acting as the central processing unit for interfacing with a variety of sensors and control devices. The design incorporated the SF-5M sap flow sensor, LT-1T leaf temperature sensor, and MT-603 load cell to measure various environmental parameters. Each of these sensors used different communication protocols, requiring careful consideration of power requirements, signal integrity, and communication compatibility.
+The system was designed around the RP2040 microcontroller, acting as the central 
+processing unit for interfacing with a variety of sensors and control devices. 
+The design incorporates the SF-5M sap flow sensor, LT-1T leaf temperature sensor, 
+and MT-603 load cell to measure various environmental parameters. Each of these 
+sensors uses different communication protocols, requiring careful consideration of 
+power requirements, signal integrity, and communication compatibility.
 
 \note{....}
-As seen in \cref{block_diagram} there were lots of blocks
+As seen in \cref{block_diagram}, the system consists of 
 
 \subsection{Hardware Design}
 Load Cell and ADC Integration: The MT-603 load cell required an ADC (Analog-to-Digital Converter) for signal conversion, as its output is an analog signal representing weight measurements. One of the RP2040's ADC pins was utilized to convert the load cell's voltage output into a digital signal that the microcontroller could process. This ADC integration allowed for precise scaling and calibration of the load cell to achieve accurate data representation.
@@ -18,6 +23,9 @@ Power Supply and Voltage Regulation: Due to the diversity of communication proto
 Data Logging and Storage: An SD card module was added to the schematic, utilizing the SPI interface as defined in the RP2040 datasheet. This module enabled reliable data storage and allowed easy access to logged data for further analysis.
 
 DAC Integration: The MCP4716 DAC was integrated to provide fine-grained control of the dew point generator. Proper bypass capacitors were placed near the Vdd pin to minimize induced noise and ensure stable operation.
+
+An initial approach to converting a digital signal to an analogue signal was Pulse Width Modulation (PWM). 
+However, this method proved unreliable and inaccurate when tested with a Raspberry Pi Pico. As a result, a digital to analogue converter (DAC) was selected instead.
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figures/SDI-12_timing.png}
