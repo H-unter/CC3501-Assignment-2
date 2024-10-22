@@ -11,20 +11,20 @@ power requirements, signal integrity, and communication compatibility. \cref{blo
 shows an overview of all the communication systems involved in the design.
 
 \subsection{Hardware Design}
-<<<<<<< Updated upstream
-\textbf{Load Cell and ADC Integration:} The MT-603 load cell required an ADC (Analogue-to-Digital Converter) for signal conversion, as its output is an analogue signal representing weight measurements. One of the RP2040's ADC pins was utilised to convert the load cell's voltage output into a digital signal that the microcontroller could process. An instrumentation amplifier was used to amplify the small voltage changes from the load cell, improving the resolution and accuracy of the measurements. This ADC integration allowed for precise scaling and calibration of the load cell to achieve accurate data representation.
-=======
-\textbf{Load Cell and ADC Integration:} The MT-603 load cell requires an ADC 
-(Analogue-to-Digital Converter) for signal conversion, as its output is an analogue 
+
+\subsubsection{Load Cell and ADC Integration}
+
+The MT-603 load cell requires an ADC (Analogue-to-Digital Converter) for signal conversion, as its output is an analogue 
 signal representing weight measurements. Therefore, one of the RP2040's ADC pins was utilised 
 to convert the load cell's voltage output into a digital signal in which the microcontroller 
 can process. An instrumentation amplifier was also added to amplify the small voltage changes 
 from the load cell, improving the resolution and accuracy of the measurements. This ADC 
 integration allowed for precise scaling and calibration of the load cell to achieve 
 accurate data representation.
->>>>>>> Stashed changes
 
-\textbf{SDI-12 Sensors and Communication Interface:} The SDI-12 protocol was implemented because 
+\subsubsection{SDI-12 Sensors and Communication Interface} 
+
+The SDI-12 protocol was implemented because 
 it is the standard communication protocol for the environmental sensors integrated into 
 this system. However, SDI-12 differs from typical UART communication in that its bit 
 values are inverted and requires strict timing. To address this, the project leveraged 
@@ -35,60 +35,28 @@ line of the differential pair (data line B), and setting the voltage reference a
 effectively maps the inverted SDI-12 signals to conventional UART high and low values, 
 allowing reliable sensor communication.
 
-<<<<<<< Updated upstream
-\textbf{Power Supply and Voltage Regulation:} Due to the diversity of communication protocols and components used in the system—such as ADC for the load cell, SDI-12 for sensors, and I2C for the DAC—multiple voltage levels were required on the PCB: 12V, 5V, and 3.3V. Each voltage level was supplied through dedicated regulators to ensure stable power delivery to each module. The careful placement of decoupling capacitors was critical to minimise voltage ripple and noise, ensuring stable operation of the entire system.
+\subsubsection{Power Supply and Voltage Regulation}
 
-\textbf{Data Logging and Storage:} An SD card module was added to the schematic, utilising the SPI interface as defined in the RP2040 datasheet. This module enabled reliable data storage and allowed easy access to logged data for further analysis. The SPI bus operates at a clock speed of 1 MHz, which is suitable for reliable data transfer with the SD card.
-
-\textbf{DAC Integration:}The MCP4716 DAC was integrated to provide fine-grained control of the dew point generator. Proper bypass capacitors were placed near the V\textsubscript{DD} pin to minimise induced noise and ensure stable operation. The DAC communicates with the RP2040 over the I2C bus at a standard mode speed of 100 kHz.
-
-An initial approach to converting a digital signal to an analogue signal was Pulse Width Modulation (PWM).However, this method proved unreliable and inaccurate when tested with a Raspberry Pi Pico. As a result, a digital to analogue converter (DAC) was selected instead.
-=======
-\textbf{Power Supply and Voltage Regulation:} Due to the diversity of communication protocols 
+Due to the diversity of communication protocols 
 and components used in the system (such as ADC for the load cell, SDI-12 for sensors, and I2C 
 for the DAC—multiple), the following voltage levels were required on the PCB: 12V, 5V, and 3.3V. Each voltage 
 level was supplied through dedicated regulators to ensure stable power delivery to each module. 
 The careful placement of decoupling capacitors was critical to minimize voltage ripple and noise, 
 ensuring stable operation of the entire system.
 
-\textbf{Data Logging and Storage:} An SD card module was added to the schematic, utilising the 
+\subsubsection{Data Logging and Storage}
+
+An SD card module was added to the schematic, utilising the 
 SPI interface as defined in the RP2040 datasheet. This module enables reliable data storage 
 and allows easy access to logged data for further analysis. The SPI bus operates at a clock 
 speed of 1 MHz, which is suitable for reliable data transfer with the SD card.
 
-\textbf{DAC Integration:} Initially, a solution consisting of Pulse Width Modulation (PWM) 
+\subsubsection{DAC Integration}
+
+Initially, a solution consisting of Pulse Width Modulation (PWM) 
 along with a low pass filter was considered to convert to generate the required analogue signal 
 for the dew point generator. However, this method proved unreliable and inaccurate when tested 
 with a Raspberry Pi Pico. As a result, the MCP4716 DAC (10 bits) was integrated to provide fine-grained control of 
 the dew point generator. Proper bypass capacitors were placed near the $V_{DD}$ pin 
 to minimize induced noise and ensure stable operation. The DAC was designed to communicate with the RP2040 
 over the I2C bus at a standard mode speed of 100 kHz.
->>>>>>> Stashed changes
-
-\begin{figure}
-    \includegraphics[width=\linewidth]{figures/SDI-12_timing.png}
-    \caption{SDI-12 timing from \cite{sdi12_datasheet}}
-    \label{sdi12_timing}
-\end{figure}
-
-\subsection{Software Design}
-\textbf{Sensor Data Acquisition:} Custom drivers were developed for each sensor, adhering to the SDI-12 
-protocol. Specific issues with the byte framing of the SDI-12 protocol were addressed by using the 
-\code{uart_set_format()} function to configure the communication format correctly, allowing the RP2040 
-to receive the inverted data without additional circuitry. The \code{uart_break()} function was used to 
-send the break signal while the \code{uart_read_stuff()} function was used to read the response from 
-the sensor. The response was then parsed to get the data. The timing of the SDI-12 protocol is shown 
-in \cref{sdi12_timing}.
-
-\textbf{Data Storage:} The FatFs API was integrated to enable read/write operations on the SD card, 
-using the SPI protocol. This allowed for structured data logging and easy retrieval of information. 
-Functions were implemented to write data in CSV format, facilitating compatibility with data analysis tools.
-
-\textbf{Control Interface:}  A software interface for controlling the dew point generator was implemented 
-using the I2C protocol to communicate with the DAC. This interface allows precise voltage adjustments to 
-the generator, with preliminary tests confirming accurate output predictions based on command inputs. 
-The I2C communication was established using standard mode at 100 kHz, which is compatible with the MCP4716 DAC.
-
-The careful selection of communication interfaces and voltage levels, along with robust software 
-integration, allowed the system to operate seamlessly and efficiently, providing a reliable solution 
-for monitoring and controlling environmental parameters.
