@@ -1,7 +1,19 @@
 \subsection{Command-line Interface}
 
-A command-line interface was designed to operate in terminal where a terminal driver
-was made. The terminal driver consists of several functions such as 
+A command-line interface was implemented to allow the user to interact with the system.
+A terminal driver was developped to handle user input and execute commands and manages a 
+buffer for multi-character commands. A command in this context is represented as a data 
+structure called \code{Command}, which encapsulates the command type and an optional 
+floating-point argument. The 'Command' struct contains:
 
-\code{clear_terminal()}, 
-\code{reset_buffer()} and \code{loads_previous_commad()}. 
+\begin{itemize}
+    \item the type of command issued by the user (e.g., \code{help}, \code{set_voltage}, \code{get_data}, \code{shutdown})
+    \item an optional argument for commands that require additional information, such as a voltage value for \code{set_voltage}
+\end{itemize}
+
+This class provides methods for:
+\begin{itemize}
+    \item Handling input character by character.
+    \item Parsing and executing user commands by interpreting the \code{Command} structure.
+    \item Resetting and managing the internal command buffer used for building commands from user input.
+\end{itemize}
