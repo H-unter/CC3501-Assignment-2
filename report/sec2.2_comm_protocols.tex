@@ -42,7 +42,7 @@ By using only the non-inverting line and proper voltage references, we adapted U
 
 The SDI-12 protocol defines communication between the data recorder (master) and sensors (slaves) at 1200 baud, using 7 data bits, even parity, and one stop bit \cite{sdi12_datasheet}. It specifies ASCII commands for initiating measurements, requesting data, and managing sensor addresses \cite{sdi12_datasheet}.
 
-In the current implementation, the system communicates with two SDI-12 sensors with hardcoded addresses. While this simplifies software development, it limits scalability and requires prior knowledge of sensor addresses. SDI-12 supports up to ten sensors on a single data line, each with a unique address \cite{sdi12_datasheet}. Implementing a dynamic discovery process using the "Address Query" command (?!) would allow communication with multiple sensors without prior address knowledge, enhancing extensibility.
+In the current implementation, the system communicates with two SDI-12 sensors with hardcoded addresses. While this simplifies software development, it limits scalability and requires prior knowledge of sensor addresses. SDI-12 supports up to ten sensors on a single data line, each with a unique address \cite{sdi12_datasheet}.
 
 \textbf{Application Layer}
 
