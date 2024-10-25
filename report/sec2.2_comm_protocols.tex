@@ -104,7 +104,7 @@ In this system, the I2C bus operates at a standard mode speed of 100 kHz.
 
 At the data link layer, the I2C protocol handles addressing and data transfer between the master 
 (RP2040 microcontroller) and the slave device (DAC) \cite{DAC_datasheet}. Each device on the I2C bus has a unique 7-bit address. 
-The protocol defines start and stop conditions, acknowledgments, and data byte transfers \cite{DAC_datasheet}. The software includes drivers to configure the DAC's settings, such as reference voltage and gain, and to send digital values that the DAC converts into analog voltages. This allows precise control over the dew point generator.
+The protocol defines start and stop conditions, acknowledgments, and data byte transfers \cite{DAC_datasheet}. The software includes drivers to configure the DAC's settings, such as reference voltage and gain, and to send digital values that the DAC converts into analog voltages. This allows precise control over the dew point generator. These configuartions were all passed on through the \code{Write All Memory} command \cite{DAC_datasheet}.
 
 \subsubsection{Analogue Inputs and Outputs}
 
