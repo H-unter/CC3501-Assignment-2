@@ -11,8 +11,8 @@ The program sequentially takes measurements from each SDI-12 sensor while simult
 collecting data from faster sensors, such as load cells and the dew point generator, during 
 the waiting periods for SDI-12 responses. Instead of using interrupts, the program relies 
 on flag-based polling to gather data. Since the system is monitoring a living plant, 
-where rapid changes are not expected, precise timing is not critical. The following 
-diagram illustrates the process: 
+where rapid changes are not expected, precise timing is not critical. \cref{flowchart} shows  
+a diagram illustrating the process.
 
 \begin{figure}
     \includegraphics[width=0.4\linewidth]{figures/program_flowchart.jpg}
@@ -20,13 +20,6 @@ diagram illustrates the process:
     \label{flowchart}
 \end{figure}
 
-
-
-Justify (research why Laurance gave it to us) why rs485 transceiver is suitable for our application 
-(somewhere in the osi explanation) (data rates, data line driving, similarities to UART, whatever else we find)
-
-Mention the limitation that sensors have a particular address, and our hardcoded approach prompts the 
-sensors knowing their addres beforehand (and also knowing we only have 2 sensors)
 
 A more extensible system would ask all the sdi12 sensors on the data line what their address is 
 and dynamically get data from all of them regardless of how many sensors there are. The hardware 
@@ -75,12 +68,17 @@ without prior knowledge of their addresses, fully utilizing the hardware's capab
 
 \textbf{Application Layer}
 
-Custom drivers were developed for each sensor, adhering to the SDI-12 
+A custom driver was developed for the SDI-12 sensors, adhering to the SDI-12 
 protocol. Specific issues with the byte framing of the SDI-12 protocol were addressed by using the 
-\code{uart_set_format()} function to configure the communication format correctly, allowing the RP2040 
-to receive the inverted data without additional circuitry. The \code{uart_break()} function was used to 
-send the break signal while the \code{uart_read_stuff()} function was used to read the response from 
-the sensor. The response was then parsed to get the data. The timing of the SDI-12 protocol is shown 
+\code{uart_set_format()} function to configure the communication format correctly (data bits 
+were set to 7, stop bits were set to 1, parity option was set to \code{UART_PARITY_EVEN}), 
+allowing the RP2040 to receive the inverted data without additional circuitry. 
+
+The \code{uart_set_break()} function was used assert a break condition on the UART transmission, where it was first set 
+to true then to false immediately after (the uart break in this case happens to be about the same time as the sdi-12 break). 
+The following functions were then used to send an SDI-12 command to the sensors: \code{uart_write_blocking()}, \code{uart_tx_wait_blocking()}.
+In order to read the sensor responses, the \code{uart_is_readable()} is used along with \code{tight_loop_contents()}, which 
+improves CPU efficiency. The response was then parsed to get the data. The timing of the SDI-12 protocol is shown 
 in \cref{sdi12_timing}.
 
 \begin{figure}
