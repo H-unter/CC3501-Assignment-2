@@ -1,0 +1,21 @@
+\subsection{Recommendations}
+
+\note{A potential solution is to implement an SDI-12 command queue, which would manage sensor requests efficiently. Alternatively, a system similar to real-time operating systems (RTOS) could be used, where tasks are prioritized and managed with mechanisms like task prioritization and mutexes. This approach would ensure smoother task allocation, preventing conflicts and improving response handling for both fast and slow sensors.}
+
+Based on the design process and challenges encountered, several recommendations can be made for future engineers who might revise this work:
+
+\textbf{1. Implement Dynamic Sensor Discovery}: Incorporate the SDI-12 "Address Query" command (?!) to dynamically discover all connected sensors. This would eliminate the need for hardcoded sensor addresses and allow the system to support any number of SDI-12 sensors without software modifications.
+
+\textbf{2. Develop a User-Friendly Interface}: Implement a graphical user interface (GUI) to make the system more accessible to users beyond the initial researcher, enhancing usability and broadening its appeal.
+
+\textbf{3. Develop Robust Error Handling}: Improve the software to handle communication errors, sensor timeouts, and unexpected responses. Implementing retries, acknowledgments, and exception handling will make the system more reliable in field conditions.
+
+\textbf{3. Thorough PCB Layout Review}: Implement a rigorous design review process before finalizing the PCB layout to prevent hardware errors like swapped SDA and SCL pins or incorrect resistor sizing.
+
+\textbf{4. Enhanced Signal Conditioning}: For analogue inputs like the load cell, consider implementing hardware filtering and shielding to reduce noise and improve signal stability. This might include adding low-pass filters or using differential signal processing techniques.
+
+\textbf{5. Upgrade DAC Precision}: Replace the current 10-bit DAC with a 12-bit DAC to improve voltage output accuracy for the dew point generator.
+
+\textbf{6. Power Management}: Explore power-saving features and strategies, especially if the system is to be deployed in remote locations where power availability is limited.
+
+By addressing these areas, future iterations of the system can achieve greater robustness, scalability, and ease of use, ultimately enhancing its value for environmental research applications.

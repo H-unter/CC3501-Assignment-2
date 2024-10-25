@@ -1,4 +1,4 @@
-\subsection{Technical Challenges and Solutions}
+\section{Technical Challenges and Solutions}
 
 \subsubsection{SDI-12 Sensor Communication Issues}
 During the testing of the SDI-12 sensors, initial attempts to communicate using RS485 transceivers failed due to improper framing of byte streams. The strict timing requirements and inverted logic levels of the SDI-12 protocol made it difficult to achieve reliable communication using standard UART settings. This issue was addressed by applying the \code{uart_set_format()} function, which allowed the RP2040 to handle the SDI-12 protocol's timing and framing more accurately.
