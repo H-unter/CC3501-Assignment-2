@@ -1,11 +1,11 @@
-\section{Technical Challenges and Solutions}
+\subsection{Technical Challenges and Solutions}
 
-\subsection{SDI-12 Sensor Communication Issues}
+\subsubsection{SDI-12 Sensor Communication Issues}
 During the testing of the SDI-12 sensors, initial attempts to communicate using RS485 transceivers failed due to improper framing of byte streams. The strict timing requirements and inverted logic levels of the SDI-12 protocol made it difficult to achieve reliable communication using standard UART settings. This issue was addressed by applying the \code{uart_set_format()} function, which allowed the RP2040 to handle the SDI-12 protocol's timing and framing more accurately.
 
 Additionally, a \code{custom is_timed_out()} function was created to automate character reception without using traditional sleep methods, ensuring precise byte timing and avoiding data loss during transmission. The RS485 transceiver's ability to handle inverted logic and differential signaling enhanced noise immunity and improved communication reliability over long distances.
 
-\subsection{Load Cell Signal Scaling and Stability}
+\subsubsection{Load Cell Signal Scaling and Stability}
 The MT-603 load cell exhibited a significant dead zone and provided inconsistent readings due to mechanical vibrations in the experimental setup. An instrumentation amplifier was used to amplify the load cell's signal, improving sensitivity. However, environmental noise and mechanical oscillations still affected the readings.
 
 Software-based noise reduction techniques, such as averaging past data points using an exponential moving average, were implemented to mitigate the effect of oscillations. This software solution was preferred over hardware filtering due to the constraints of the existing apparatus.

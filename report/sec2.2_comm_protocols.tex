@@ -7,6 +7,35 @@ crucial for ensuring reliable and efficient data transmission. This section expl
 the OSI model implementation for each protocol used: SDI-12/UART/RS485, SPI, I2C, 
 and analog inputs and outputs.
 
+The program sequentially takes measurements from each SDI-12 sensor while simultaneously 
+collecting data from faster sensors, such as load cells and the dew point generator, during 
+the waiting periods for SDI-12 responses. Instead of using interrupts, the program relies 
+on flag-based polling to gather data. Since the system is monitoring a living plant, 
+where rapid changes are not expected, precise timing is not critical. The following 
+diagram illustrates the process: 
+
+\begin{figure}
+    \includegraphics[width=0.4\linewidth]{figures/program_flowchart.jpg}
+    \caption{Flowchart of Program}
+    \label{flowchart}
+\end{figure}
+
+
+
+Justify (research why Laurance gave it to us) why rs485 transceiver is suitable for our application 
+(somewhere in the osi explanation) (data rates, data line driving, similarities to UART, whatever else we find)
+
+Mention the limitation that sensors have a particular address, and our hardcoded approach prompts the 
+sensors knowing their addres beforehand (and also knowing we only have 2 sensors)
+
+A more extensible system would ask all the sdi12 sensors on the data line what their address is 
+and dynamically get data from all of them regardless of how many sensors there are. The hardware 
+design is highly extensible (screw in terminals allow you to plug in however many you want) but 
+the software would need to be developed more to fully realise this extensibility (mention specific 
+commands that could be used to get all the sensors address)
+
+oh on this note i think a quick mention of the sdi12 uart data format would be good
+
 \subsubsection{SDI-12/UART/RS485 Communication}
 
 \textbf{Physical Layer}
