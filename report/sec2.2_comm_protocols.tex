@@ -27,7 +27,7 @@ diagram (\cref{flowchart})  illustrates the process:
 SDI-12 communication is managed using UART1 on the RP2040 microcontroller, with specific 
 GPIO pins defined for transmission (TX), reception (RX), and data line drive enablement. The SDI-12 protocol operates over a single data line with negative logic levels: logic '0' is high voltage; logic '1' is low voltage. The RS485 transceiver adapts the UART signals to meet these requirements.
 
-The RS485 transceiver is suitable because:
+The RS485 transceiver is suitable because \cite{AnalogDevicesMAX1487}:
 
 \begin{itemize} 
     \item \textbf{UART Compatibility}: It interfaces easily with UART and supports SDI-12's 1200 baud rate. 
@@ -40,16 +40,16 @@ By using only the non-inverting line and proper voltage references, we adapted U
 
 \textbf{Data Link Layer}
 
-The SDI-12 protocol defines communication between the data recorder (master) and sensors (slaves) at 1200 baud, using 7 data bits, even parity, and one stop bit. It specifies ASCII commands for initiating measurements, requesting data, and managing sensor addresses.
+The SDI-12 protocol defines communication between the data recorder (master) and sensors (slaves) at 1200 baud, using 7 data bits, even parity, and one stop bit \cite{sdi12_datasheet}. It specifies ASCII commands for initiating measurements, requesting data, and managing sensor addresses \cite{sdi12_datasheet}.
 
-In the current implementation, the system communicates with two SDI-12 sensors with hardcoded addresses. While this simplifies software development, it limits scalability and requires prior knowledge of sensor addresses. SDI-12 supports up to ten sensors on a single data line, each with a unique address. Implementing a dynamic discovery process using the "Address Query" command (?!) would allow communication with multiple sensors without prior address knowledge, enhancing extensibility.
+In the current implementation, the system communicates with two SDI-12 sensors with hardcoded addresses. While this simplifies software development, it limits scalability and requires prior knowledge of sensor addresses. SDI-12 supports up to ten sensors on a single data line, each with a unique address \cite{sdi12_datasheet}. Implementing a dynamic discovery process using the "Address Query" command (?!) would allow communication with multiple sensors without prior address knowledge, enhancing extensibility.
 
 \textbf{Application Layer}
 
 Custom drivers were developed for each sensor, adhering to the SDI-12 protocol. Specific issues with the byte framing of the protocol were addressed by using the 
 \code{uart_set_format()} function to configure the communication format correctly, allowing the RP2040 
-to receive inverted data without additional circuitry. 
-The \code{uart_break()} function sends the required break signal, and \code{uart_read_stuff()} reads sensor responses, which are then parsed to extract data. The timing of the SDI-12 protocol is shown 
+to receive inverted data without additional circuitry \cite{RaspberryPiPicoSDK}. 
+The \code{uart_break()} function sends the required break signal, and \code{uart_read_stuff()} reads sensor responses, which are then parsed to extract data \cite{RaspberryPiPicoSDK}. The timing of the SDI-12 protocol is shown 
 in \cref{sdi12_timing}.
 
 \begin{figure}
@@ -63,7 +63,7 @@ in \cref{sdi12_timing}.
 \textbf{Physical Layer}
 
 The SPI protocol is used for communication with the SD card module. SPI is a synchronous serial communication 
-interface that operates in full-duplex mode. It uses four signals:
+interface that operates in full-duplex mode \cite{SPIDevice}. It uses four signals:
 \begin{itemize}
     \item MOSI (Master Out Slave In): Transfers data from the master to the slave.
     \item MISO (Master In Slave Out): Transfers data from the slave to the master.
@@ -79,7 +79,7 @@ At the data link layer, the SPI protocol exchanges data bytes between the microc
 and the SD card. It does not define a specific frame format or error-checking mechanism, relying on 
 higher-level protocols for these functions. The FatFs file system library is employed to handle file 
 operations on the SD card. FatFs provides functions for reading, writing, and managing files, ensuring 
-data integrity and proper formatting according to the FAT file system standards.
+data integrity and proper formatting according to the FAT file system standards \cite{NXPMSDFATFSAPI}.
 
 \textbf{Application Layer}
 
@@ -92,7 +92,7 @@ Functions were implemented to write data in CSV format, facilitating compatibili
 \textbf{Physical Layer}
 
 The I2C protocol is used for communication with the MCP4716 DAC. I2C is a synchronous, multi-master, 
-multi-slave, single-ended serial communication bus. It uses two bidirectional open-drain lines:
+multi-slave, single-ended serial communication bus \cite{DAC_datasheet}. It uses two bidirectional open-drain lines:
 \begin{itemize}
     \item SDA (Serial Data Line): Transfers data between devices.
     \item SCL (Serial Clock Line): Provides the clock signal for synchronisation.
@@ -103,8 +103,8 @@ In this system, the I2C bus operates at a standard mode speed of 100 kHz.
 \textbf{Data Link Layer}
 
 At the data link layer, the I2C protocol handles addressing and data transfer between the master 
-(RP2040 microcontroller) and the slave device (DAC). Each device on the I2C bus has a unique 7-bit address. 
-The protocol defines start and stop conditions, acknowledgments, and data byte transfers. The software includes drivers to configure the DAC's settings, such as reference voltage and gain, and to send digital values that the DAC converts into analog voltages. This allows precise control over the dew point generator.
+(RP2040 microcontroller) and the slave device (DAC) \cite{DAC_datasheet}. Each device on the I2C bus has a unique 7-bit address. 
+The protocol defines start and stop conditions, acknowledgments, and data byte transfers \cite{DAC_datasheet}. The software includes drivers to configure the DAC's settings, such as reference voltage and gain, and to send digital values that the DAC converts into analog voltages. This allows precise control over the dew point generator.
 
 \subsubsection{Analogue Inputs and Outputs}
 
@@ -118,7 +118,7 @@ While analog signals lack a formal data link layer, signal conditioning and conv
 
 \textbf{Application Layer}
 
-A software interface controls the dew point generator via the I2C protocol communicating with the DAC (MCP4716). This allows precise voltage adjustments, with tests confirming accurate outputs based on command inputs. I2C communication operates in standard mode at 100 kHz, compatible with the DAC.
+A software interface controls the dew point generator via the I2C protocol communicating with the DAC (MCP4716). This allows precise voltage adjustments, with tests confirming accurate outputs based on command inputs. I2C communication operates in standard mode at 100 kHz, compatible with the DAC \cite{DAC_datasheet}.
 
 Selecting appropriate communication interfaces and voltage levels, along with robust software integration, enables the system to operate seamlessly and efficiently, providing a reliable solution for monitoring and controlling environmental parameters.
 

@@ -14,11 +14,11 @@ accurate data representation.
 
 The SDI-12 protocol was implemented because 
 it is the standard communication protocol for the environmental sensors integrated into 
-this system. However, SDI-12 differs from typical UART communication in that its bit 
-values are inverted and requires strict timing. To address this, the project leveraged 
-the RP2040's UART capabilities in conjunction with an RS485 transceiver. The RS485 
+this system \cite{MT603}, \cite{ImplexxSapFlowSensors}. However, SDI-12 differs from typical UART communication in that its bit 
+values are inverted and requires strict timing \cite{sdi12_datasheet}. To address this, the project leveraged 
+the RP2040's UART capabilities in conjunction with an RS485 transceiver (MAX1487). The RS485 
 transceiver is suitable for this application due to its robust line-driving capabilities, 
-noise immunity, and compatibility with inverted logic levels. By using only the non-inverting 
+noise immunity, and compatibility with inverted logic levels \cite{AnalogDevicesMAX1487}. By using only the non-inverting 
 line of the differential pair (data line B), and setting the voltage reference at 2.5V, the design 
 effectively maps the inverted SDI-12 signals to conventional UART high and low values, 
 allowing reliable sensor communication.
@@ -35,7 +35,7 @@ ensuring stable operation of the entire system.
 \subsubsection{Data Logging and Storage}
 
 An SD card module was added to the schematic, utilising the 
-SPI interface as defined in the RP2040 datasheet. This module enables reliable data storage 
+SPI interface as defined in the RP2040 datasheet \cite{RaspberryPiRP2040}. This module enables reliable data storage 
 and allows easy access to logged data for further analysis. The SPI bus operates at a clock 
 speed of 1 MHz, which is suitable for reliable data transfer with the SD card.
 
@@ -45,6 +45,7 @@ Initially, a solution consisting of Pulse Width Modulation (PWM)
 along with a low pass filter was considered to convert to generate the required analogue signal 
 for the dew point generator. However, this method proved unreliable and inaccurate when tested 
 with a Raspberry Pi Pico. As a result, the MCP4716 DAC (10 bits) was integrated to provide fine-grained control of 
-the dew point generator. Proper bypass capacitors were placed near the $V_{DD}$ pin 
-to minimize induced noise and ensure stable operation. The DAC was designed to communicate with the RP2040 
+the dew point generator \cite{DAC_datasheet}. Proper bypass capacitors were placed near the $V_{DD}$ pin 
+to minimize induced noise and ensure stable operation \cite{DAC_datasheet}. $V_{DD}$ was also selected as the reference voltage, where 
+the $V_{REF}$ pin was left floating \cite{DAC_datasheet}. The DAC was designed to communicate with the RP2040 
 over the I2C bus at a standard mode speed of 100 kHz.
