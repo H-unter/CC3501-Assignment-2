@@ -12,29 +12,13 @@ collecting data from faster sensors, such as load cells and the dew point genera
 the waiting periods for SDI-12 responses. Instead of using interrupts, the program relies 
 on flag-based polling to gather data. Since the system is monitoring a living plant, 
 where rapid changes are not expected, precise timing is not critical. The following 
-diagram illustrates the process: 
+diagram (\cref{flowchart})  illustrates the process: 
 
 \begin{figure}
     \includegraphics[width=0.4\linewidth]{figures/program_flowchart.jpg}
     \caption{Flowchart of Program}
     \label{flowchart}
 \end{figure}
-
-
-
-Justify (research why Laurance gave it to us) why rs485 transceiver is suitable for our application 
-(somewhere in the osi explanation) (data rates, data line driving, similarities to UART, whatever else we find)
-
-Mention the limitation that sensors have a particular address, and our hardcoded approach prompts the 
-sensors knowing their addres beforehand (and also knowing we only have 2 sensors)
-
-A more extensible system would ask all the sdi12 sensors on the data line what their address is 
-and dynamically get data from all of them regardless of how many sensors there are. The hardware 
-design is highly extensible (screw in terminals allow you to plug in however many you want) but 
-the software would need to be developed more to fully realise this extensibility (mention specific 
-commands that could be used to get all the sensors address)
-
-oh on this note i think a quick mention of the sdi12 uart data format would be good
 
 \subsubsection{SDI-12/UART/RS485 Communication}
 
@@ -59,6 +43,9 @@ The RS485 transceiver is suitable for this application due to its robust communi
 By using only the non-inverting line of the RS485 transceiver and setting appropriate voltage references, 
 the system effectively adapts the standard UART interface to meet the physical layer requirements of the SDI-12 protocol.
 
+\note{Justify (research why Laurance gave it to us) why rs485 transceiver is suitable for our application 
+(somewhere in the osi explanation) (data rates, data line driving, similarities to UART, whatever else we find)}
+
 \textbf{Data Link Layer}
 
 At the data link layer, the SDI-12 protocol defines the communication between the data recorder 
@@ -73,6 +60,8 @@ system would implement a discovery process using the SDI-12 "Address Query" comm
 all connected sensors dynamically. This would enable the system to communicate with any number of sensors 
 without prior knowledge of their addresses, fully utilizing the hardware's capability for extensibility.
 
+\note{Mention the limitation that sensors have a particular address, and our hardcoded approach prompts the sensors knowing their addres beforehand (and also knowing we only have 2 sensors)}
+
 \textbf{Application Layer}
 
 Custom drivers were developed for each sensor, adhering to the SDI-12 
@@ -82,6 +71,8 @@ to receive the inverted data without additional circuitry. The \code{uart_break(
 send the break signal while the \code{uart_read_stuff()} function was used to read the response from 
 the sensor. The response was then parsed to get the data. The timing of the SDI-12 protocol is shown 
 in \cref{sdi12_timing}.
+
+\note{oh on this note i think a quick mention of the sdi12 uart data format would be good}
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figures/SDI-12_timing.png}
@@ -143,7 +134,7 @@ The protocol defines start and stop conditions, acknowledgments, and data byte t
 
 Analog inputs and outputs are used to interface with devices like the load cell (MT-603) and the dew point 
 generator (LI-610). The load cell produces an analog voltage proportional to the applied weight, which is 
-connected to the RP2040's ADC pins. An instrumentation amplifier (e.g., INA826) is used to amplify the small 
+connected to the RP2040's ADC pins. An instrumentation amplifier (INA826) is used to amplify the small 
 signal from the load cell. The dew point generator accepts a 0–5 V analog input for control, which is 
 provided by the DAC's output.
 
