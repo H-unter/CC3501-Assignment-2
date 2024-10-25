@@ -7,7 +7,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 #include "hardware/adc.h"
-#include "hardware/i2c.h" // should be in the class only
+#include "hardware/i2c.h"
 #include "pico/stdlib.h"
 #include "pico/time.h" // Include time functions
 #include "pico/binary_info.h"
@@ -27,21 +27,19 @@
 
 static data_sample most_recent_data; // globally accessible most recent sample variable
 static uint64_t start_time_ms = to_ms_since_boot(get_absolute_time());
-static SDCard sd_card;                               // lol global
-static FIL file;                                     // lol also global
+static SDCard sd_card;                               // global
+static FIL file;                                     // global
 static int is_data_logged = true;                    // flag checking if the most recently sampled data has been saved to the sd card
 static bool sdi12_s0_start_measurement_flag = false; // sensor 0
 static bool sdi12_s0_end_measurement_flag = false;   // sensor 0
 static bool sdi12_s1_start_measurement_flag = false; // sensor 1
 static bool sdi12_s1_end_measurement_flag = false;   // sensor 1
 
-// move this lol:
 uint64_t s0_measurement_start_time;
 uint64_t s1_measurement_start_time;
 int measurement_wait_time_s = 1;
 
-// arguments to be passed into the repeating timer function
-// TODO: address the sd card errors that occour when trying to write to the file inside this timer function
+// Arguments to be passed into the repeating timer function
 struct sample_data_args
 {
     LoadCell *loadcell;
@@ -57,12 +55,13 @@ bool sample_data(struct repeating_timer *t)
 
     uint16_t dpg_voltage_input = adc_read() * (3.3f / (1 << 12));
     most_recent_data.dpg_voltage = dpg_voltage_input;
-    // set flags to sample the sdi12 bus when the sdi12 bus is ready
+    // Set flags to sample the sdi12 bus when the sdi12 bus is ready
     sdi12_s0_start_measurement_flag = true;
     sdi12_s1_start_measurement_flag = true;
+    // Record elapsed time (in ms) since boot
     uint64_t current_time_ms = to_ms_since_boot(get_absolute_time());
     most_recent_data.elapsed_time_ms = current_time_ms - start_time_ms;
-    is_data_logged = false; // save to sd card whhen the program is ready
+    is_data_logged = false; // save to sd card when the program is ready
     return true;
 }
 
@@ -109,46 +108,48 @@ int main()
             is_data_logged = true;
         }
 
-        // start sdi12 s0 measurement
+        // Start sdi12 s0 measurement
         if (sdi12_s0_start_measurement_flag == true && !sdi12.is_dataline_busy && !sdi12_s0_end_measurement_flag)
         {
             sdi12.set_data_line_driven(true);
-            sdi12.send_break();
-            sdi12.send_command("0M!", true);
+            sdi12.send_break();              // Send break
+            sdi12.send_command("0M!", true); // Start measurement with sensor address "0"
+
+            // Reset start flag and set end flag for sdi12 s0 after receiving response
             std::string command_response = sdi12.receive_command_blocking();
-            // printf("Received %d characters: %s\n", command_response.length(), command_response.c_str());
-            bool is_valid_start_measurement_start_response = command_response.length() == 5;
+            bool is_valid_start_measurement_start_response = command_response.length() == 5; // expected response is 000<CR><LF>
             if (is_valid_start_measurement_start_response)
             {
-                // int measurement_wait_time_s = sdi12.parse_wait_time_from_measure_response(command_response);
-                //  printf("Measurement wait time: %d\n", measurement_wait_time_s);
                 s0_measurement_start_time = to_ms_since_boot(get_absolute_time());
                 sdi12_s0_start_measurement_flag = false;
                 sdi12_s0_end_measurement_flag = true;
             }
         }
+
+        // Record elapsed time (in ms) since boot
         int64_t s0_measurement_elapsed_time_ms = to_ms_since_boot(get_absolute_time()) - s0_measurement_start_time;
         float s0_measurement_elapsed_time_s = float(s0_measurement_elapsed_time_ms) / 1000.0f;
         bool is_s0_measurement_ready = (sdi12_s0_end_measurement_flag && s0_measurement_elapsed_time_s >= measurement_wait_time_s);
 
-        // start sdi12 s1 measurement
+        // Start sdi12 s1 measurement
         if (sdi12_s1_start_measurement_flag == true && !sdi12.is_dataline_busy && !sdi12_s1_end_measurement_flag)
         {
             sdi12.set_data_line_driven(true);
-            sdi12.send_break();
-            sdi12.send_command("1M!", true);
+            sdi12.send_break();              // Send break
+            sdi12.send_command("1M!", true); // Start measurement with sensor address "1"
+
+            // Reset start flag and set end flag for sdi12 s1 after receiving response
             std::string command_response = sdi12.receive_command_blocking();
-            // printf("Received %d characters: %s\n", command_response.length(), command_response.c_str());
-            bool is_valid_start_measurement_start_response = command_response.length() == 5;
+            bool is_valid_start_measurement_start_response = command_response.length() == 5; // expected response is 000<CR><LF>
             if (is_valid_start_measurement_start_response)
             {
-                // int measurement_wait_time_s = sdi12.parse_wait_time_from_measure_response(command_response);
-                //  printf("Measurement wait time: %d\n", measurement_wait_time_s);
                 s1_measurement_start_time = to_ms_since_boot(get_absolute_time());
                 sdi12_s1_start_measurement_flag = false;
                 sdi12_s1_end_measurement_flag = true;
             }
         }
+
+        // Record elapsed time (in ms) since boot
         int64_t s1_measurement_elapsed_time_ms = to_ms_since_boot(get_absolute_time()) - s1_measurement_start_time;
         float s1_measurement_elapsed_time_s = float(s1_measurement_elapsed_time_ms) / 1000.0f;
         bool is_s1_measurement_ready = (sdi12_s1_end_measurement_flag && s1_measurement_elapsed_time_s >= measurement_wait_time_s);
@@ -156,15 +157,15 @@ int main()
         if (is_s0_measurement_ready)
         {
             sdi12.set_data_line_driven(true);
-            sdi12.send_break();
-            sdi12.send_command("0D0!", true);
-            std::string measurement_response = sdi12.receive_command_blocking();
-            // printf("Received %d characters: %s\n", measurement_response.length(), measurement_response.c_str());
+            sdi12.send_break();               // Send break
+            sdi12.send_command("0D0!", true); // Send Data Command with sensor address "0"
+            std::string measurement_response = sdi12.receive_command_blocking(); // Get measurement
+
+            // If response is valid, parse calue from response and reset end flag for sdi12 s0 
             bool is_valid_measurement_response = (measurement_response.find('+') != std::string::npos);
             if (is_valid_measurement_response)
             {
                 float measurement = sdi12.parse_value_from_response(measurement_response);
-                // printf("Measurement: %f\n", measurement);
                 most_recent_data.leaf_temperature = measurement;
                 sdi12_s0_end_measurement_flag = false;
             }
@@ -173,15 +174,15 @@ int main()
         if (is_s1_measurement_ready)
         {
             sdi12.set_data_line_driven(true);
-            sdi12.send_break();
-            sdi12.send_command("1D0!", true);
-            std::string measurement_response = sdi12.receive_command_blocking();
-            // printf("Received %d characters: %s\n", measurement_response.length(), measurement_response.c_str());
+            sdi12.send_break();               // Send break
+            sdi12.send_command("1D0!", true); // Send Data Command with sensor address "1"
+            std::string measurement_response = sdi12.receive_command_blocking(); // Get measurement
+
+            // If response is valid, parse calue from response and reset end flag for sdi12 s1
             bool is_valid_measurement_response = (measurement_response.find('+') != std::string::npos);
             if (is_valid_measurement_response)
             {
                 float measurement = sdi12.parse_value_from_response(measurement_response);
-                // printf("Measurement: %f\n", measurement);
                 most_recent_data.sap_flow = measurement;
                 sdi12_s1_end_measurement_flag = false;
             }
@@ -199,18 +200,20 @@ int main()
             continue;
         }
 
-        // at this point in the program a command is ready to be processed and handled
-
+        // At this point in the program a command is ready to be processed and handled
         // Handle the input and get the command + argument
         Terminal::Command result = terminal.handle_command_input();
         switch (result.command_name)
         {
+        // If command is unrecognised
         case Terminal::Command::unrecognised:
             printf("> Unrecognised/invalid command\n");
             break;
+        // Help command
         case Terminal::Command::help:
             printf("> Help command \n> set_voltage - sets voltage value from 0-5V\n> get_data - gets the data from the sensors\n> sdi12_send - send whatever you want to the sdi12 bus\n> shutdown - safely shutdown the board\n");
             break;
+        // Command to manually set voltage of Dew Point Generator
         case Terminal::Command::set_voltage:
         {
             float input_voltage = result.numeric_argument;
@@ -219,6 +222,7 @@ int main()
             most_recent_data.dac_voltage = input_voltage;
             break;
         }
+        // Command to manually send SDI-12 commands
         case Terminal::Command::sdi12_send:
         {
             std::string input_command = result.string_argument;
@@ -230,6 +234,7 @@ int main()
             printf("> Received %d characters: %s\n", command_response.length(), command_response.c_str());
             break;
         }
+        // Command to get data
         case Terminal::Command::get_data:
             printf("> Get data command\n");
             printf("Elapsed Time: %llu ms\n", most_recent_data.elapsed_time_ms);
@@ -240,6 +245,7 @@ int main()
             printf("Leaf Temperature: %f C\n", most_recent_data.leaf_temperature);
             printf("Sap Flow: %f ml/hour\n", most_recent_data.sap_flow);
             break;
+        // Shutdown command
         case Terminal::Command::shutdown:
             printf("> Shutting down...\n");
             cancel_repeating_timer(&timer);
