@@ -26,7 +26,6 @@ void SDI12::send_break()
     is_dataline_busy = true;
     gpio_put(enable_pin, true);          // Enable transmitting mode
     uart_set_break(uart_instance, true); // hold the break for an extra ms (uart break in this case happens to be about the same time as the sdi-12 break)
-    // sleep_ms(1);                          // Hold the break for at least 1 ms
     uart_set_break(uart_instance, false); // Clear the break signal
     sleep_ms(10);                         // Wait 8.33 ms before starting communication
     is_dataline_busy = false;
