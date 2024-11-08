@@ -20,11 +20,7 @@ This is intended as a starting point for CC3501 students to build their own code
 
 # Setup instructions
 
-## Pico toolchain
-Download and install the official [RP2040 toolchain](https://github.com/raspberrypi/pico-setup-windows).
-
-## Visual Studio Build Tools
-For building the native Windows app for local debugging, install [Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022).
+Please refer to the *Getting Started with Pico on PC Condensed.pdf* for software setup.
 
 ## Visual Studio Code 
 You must run VS Code from the shortcut in the Raspberry Pico folder (which sets up the environment variables for you).
